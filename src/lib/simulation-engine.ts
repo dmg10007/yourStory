@@ -3,6 +3,7 @@ import {
   type DecisionCommand,
   type DeterministicSimulationState,
   type SimulationInput,
+  type SimulationTraceEntry,
   SimulationValidationError,
   type ScenarioRun,
 } from "@/domain/simulation";
@@ -43,7 +44,7 @@ export function initializeSimulation(
     }
   });
 
-  const trace: DeterministicSimulationState["trace"] = [
+  const trace: SimulationTraceEntry[] = [
     { type: "simulation-initialized", scenarioId: scenario.id, basicChoiceId: input.basicChoiceId },
   ];
   const advancedVariableValues: Record<string, number> = {};
