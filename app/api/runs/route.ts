@@ -4,6 +4,10 @@ import { getScenario } from "@/lib/runs/replay";
 import { initializeSimulation } from "@/lib/simulation-engine";
 import { SimulationValidationError } from "@/domain/simulation";
 
+// GET /api/runs (list the caller's own runs) is deferred until magic-link auth
+// is added. For now every run is anonymous, so there is no session to scope a
+// list to; the client tracks its own run IDs in localStorage instead.
+
 export async function POST(request: NextRequest) {
   const { scenarioId, basicChoiceId, advancedVariableOverrides } = await request.json();
 
@@ -12,14 +16,12 @@ export async function POST(request: NextRequest) {
     initializeSimulation(scenario, { basicChoiceId, advancedVariableOverrides });
 
     const supabase = await createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
 
     const { data, error } = await supabase
       .from("runs")
       .insert({
         scenario_id: scenario.id,
         scenario_version: scenario.version,
-        user_id: user?.id ?? null,
         basic_choice_id: basicChoiceId,
         advanced_variable_overrides: advancedVariableOverrides ?? {},
       })
@@ -32,19 +34,4 @@ export async function POST(request: NextRequest) {
     const message = caught instanceof SimulationValidationError ? caught.message : "Unable to create run";
     return NextResponse.json({ error: message }, { status: 400 });
   }
-}
-
-export async function GET() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Sign in to view your runs" }, { status: 401 });
-
-  const { data, error } = await supabase
-    .from("runs")
-    .select("id, scenario_id, basic_choice_id, is_complete, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ runs: data });
 }
