@@ -28,10 +28,18 @@ export async function POST(request: NextRequest) {
       .select("id")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert failed for /api/runs:", error);
+      throw error;
+    }
     return NextResponse.json({ runId: data.id });
   } catch (caught) {
-    const message = caught instanceof SimulationValidationError ? caught.message : "Unable to create run";
+    console.error("POST /api/runs failed:", caught);
+    const message = caught instanceof SimulationValidationError
+      ? caught.message
+      : caught instanceof Error
+        ? caught.message
+        : "Unable to create run";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
