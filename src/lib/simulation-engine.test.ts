@@ -8,7 +8,7 @@ describe("deterministic simulation engine", () => {
     const state = initializeSimulation(dunkirk1940, { basicChoiceId: "historical" });
 
     expect(state.advancedVariableValues).toEqual({ "evacuation-capacity": 0, "british-resolve": 0 });
-    expect(state.causalFactorValues).toEqual({ "evacuation-capacity": 0, "allied-trained-force": 0, "british-political-resolve": 0 });
+    expect(state.causalFactorValues).toEqual({ "evacuation-capacity": 0, "allied-trained-force": 0, "british-political-resolve": 0, "french-resistance-continuity": 0, "raf-fighter-reserve": 0 });
     expect(state.trace[0]).toEqual({ type: "simulation-initialized", scenarioId: "dunkirk-1940", basicChoiceId: "historical" });
   });
 
