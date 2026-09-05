@@ -21,9 +21,9 @@ Write 2-5 short paragraphs of plain prose. No markdown headers, no bullet lists,
 export async function POST(request: NextRequest, { params }: { params: Promise<{ runId: string }> }) {
   const { runId } = await params;
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
-      { error: "Narration is not configured. Set OPENAI_API_KEY to enable this feature." },
+      { error: "Narration is not configured. Set GROQ_API_KEY to enable this feature." },
       { status: 503 },
     );
   }
@@ -53,14 +53,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .map((event, index) => `${index + 1}. [${event.classification}] ${event.date} \u2014 ${event.title}: ${event.summary}`)
       .join("\n");
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile",
         temperature: 0.4,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (!response.ok) {
       const body = await response.text();
-      console.error("OpenAI narration request failed:", response.status, body);
+      console.error("Groq narration request failed:", response.status, body);
       return NextResponse.json({ error: "Unable to generate narrative right now." }, { status: 502 });
     }
 
