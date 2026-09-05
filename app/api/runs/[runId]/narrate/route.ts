@@ -60,7 +60,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-120b",
         temperature: 0.4,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
