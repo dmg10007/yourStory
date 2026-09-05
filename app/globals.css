@@ -456,3 +456,70 @@ h2 {
     padding: 22px;
   }
 }
+
+.narrative-prose {
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.narrative-prose p {
+  line-height: 1.7;
+  font-size: 1.02rem;
+}
+
+.narrative-sources {
+  margin-top: 24px;
+}
+
+.narrative-sources summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.narrative-source-list {
+  margin-top: 14px;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.narrative-source-list li {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.event-classification {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+
+.event-classification.documented-fact {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.event-classification.direct-inference {
+  color: var(--ink);
+}
+
+.event-classification.plausible-projection {
+  color: #7ba7c9;
+  border-color: #7ba7c9;
+}
+
+.event-classification.highly-speculative {
+  color: var(--muted);
+  border-style: dashed;
+}

@@ -26,6 +26,16 @@ const sourceSchema = z.object({
   reviewStatus: z.enum(["draft", "reviewed", "approved"]),
 });
 
+const narrativeEventSchema = z.object({
+  id: z.string().min(1),
+  date: historicalDateSchema,
+  title: z.string().min(1),
+  summary: z.string().min(1),
+  classification: z.enum(["documented-fact", "direct-inference", "plausible-projection", "highly-speculative"]),
+  evidenceIds: z.array(z.string().min(1)).min(1),
+  causalFactorIds: z.array(z.string().min(1)),
+});
+
 const factorEffectSchema = z.object({
   factorId: z.string().min(1),
   delta: z.number(),
@@ -36,6 +46,7 @@ const basicChoiceSchema = z.object({
   label: z.string().min(1),
   description: z.string().min(1),
   interventionSummary: z.string().min(1),
+  narrativeEvents: z.array(narrativeEventSchema).default([]),
 });
 
 const decisionChoiceSchema = z.object({
@@ -43,6 +54,7 @@ const decisionChoiceSchema = z.object({
   label: z.string().min(1),
   description: z.string().min(1),
   effects: z.array(factorEffectSchema).min(1),
+  narrativeEvents: z.array(narrativeEventSchema).default([]),
 });
 
 export const scenarioSchema = z
@@ -130,6 +142,25 @@ export const scenarioSchema = z
       });
     });
 
+    const validateNarrativeEvents = (events: { evidenceIds: string[]; causalFactorIds: string[] }[], path: (string | number)[]) => {
+      events.forEach((event, eventIndex) => {
+        event.evidenceIds.forEach((evidenceId, evidenceIndex) => {
+          if (!sourceIds.has(evidenceId)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...path, eventIndex, "evidenceIds", evidenceIndex], message: `Unknown source: ${evidenceId}` });
+          }
+        });
+        event.causalFactorIds.forEach((factorId, factorIndex) => {
+          if (!factorIds.has(factorId)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...path, eventIndex, "causalFactorIds", factorIndex], message: `Unknown causal factor: ${factorId}` });
+          }
+        });
+      });
+    };
+
+    scenario.basicChoices.forEach((choice, choiceIndex) => {
+      validateNarrativeEvents(choice.narrativeEvents, ["basicChoices", choiceIndex, "narrativeEvents"]);
+    });
+
     scenario.decisionForks.forEach((fork, forkIndex) => {
       addDuplicateIssues(fork.choices, `decisionForks.${forkIndex}.choices`);
       fork.choices.forEach((choice, choiceIndex) => {
@@ -138,6 +169,7 @@ export const scenarioSchema = z
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["decisionForks", forkIndex, "choices", choiceIndex, "effects", effectIndex, "factorId"], message: `Unknown causal factor: ${effect.factorId}` });
           }
         });
+        validateNarrativeEvents(choice.narrativeEvents, ["decisionForks", forkIndex, "choices", choiceIndex, "narrativeEvents"]);
       });
     });
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { replayRun } from "@/lib/runs/replay";
+import { RunNarrative } from "@/components/run-narrative";
 import { SimulationValidationError } from "@/domain/simulation";
 import type { DeterministicSimulationState, SimulationTraceEntry } from "@/domain/simulation";
 import { dunkirk1940 } from "@/data/scenarios/dunkirk-1940";
@@ -14,7 +15,7 @@ function describeTraceEntry(entry: SimulationTraceEntry): string | null {
     case "advanced-variable-set":
       return `${entry.variableId} set to ${entry.value} (${entry.source})`;
     case "decision-resolved":
-      return `Choice: ${entry.choiceId} — ${entry.effects.map((effect) => `${effect.factorId} ${effect.delta > 0 ? "+" : ""}${effect.delta}`).join(", ")}`;
+      return `Choice: ${entry.choiceId} \u2014 ${entry.effects.map((effect) => `${effect.factorId} ${effect.delta > 0 ? "+" : ""}${effect.delta}`).join(", ")}`;
     default:
       return null;
   }
@@ -101,6 +102,8 @@ export default async function RunReplayPage({ params }: { params: Promise<{ runI
         </div>
       )}
     </section>
+
+    <RunNarrative runId={runId} />
 
     <section className="run-section">
       <h2>Audit trace</h2>
