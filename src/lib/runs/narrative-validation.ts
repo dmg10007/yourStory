@@ -27,6 +27,10 @@ const NUMBER_WORDS = new Set([
   "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety", "Hundred", "Thousand", "Million",
 ]);
 
+const LEADING_STOP_WORDS = new Set([
+  "A", "An", "And", "As", "At", "But", "Earlier", "For", "From", "He", "Her", "His", "In", "Into", "It", "Its", "No", "Of", "On", "Or", "She", "Speaking", "That", "The", "Their", "They", "This", "To", "We", "With", "Without",
+]);
+
 function normalize(value: string): string {
   return value.toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9]+/g, " ").trim();
 }
@@ -52,12 +56,27 @@ function extractArabicNumbers(narrative: string): string[] {
   return narrative.match(/\b\d{1,4}(?:,\d{3})*\b/g) ?? [];
 }
 
+/**
+ * Strips leading connective/sentence-initial words ("In", "Earlier", "Speaking",
+ * etc.) from a matched capitalized run so that phrases like "In June, Prime
+ * Minister Paul Reynaud" are correctly reduced to "Prime Minister Paul Reynaud"
+ * rather than treated as a single compound name. Title words ("Prime",
+ * "Minister") are never stripped even though they are also capitalized, since
+ * they are part of a legitimate name phrase, not a sentence connective.
+ */
+function stripLeadingConnectives(words: string[]): string[] {
+  let start = 0;
+  while (start < words.length && LEADING_STOP_WORDS.has(words[start]) && !TITLE_WORDS.has(words[start])) {
+    start += 1;
+  }
+  return words.slice(start);
+}
+
 function extractCapitalizedNames(narrative: string): string[] {
   const matches = narrative.match(/\b(?:[A-Z][a-z]+(?:[\s-][A-Z][a-z]+)+)\b/g) ?? [];
-  return matches.filter((phrase) => {
-    const words = phrase.split(/[\s-]+/);
-    return words.some((word) => !TITLE_WORDS.has(word) && !MONTHS.has(word) && !NUMBER_WORDS.has(word));
-  });
+  return matches
+    .map((phrase) => stripLeadingConnectives(phrase.split(/[\s-]+/)).join(" "))
+    .filter((phrase) => phrase.split(" ").length >= 2);
 }
 
 function nameTokens(phrase: string): string[] {
