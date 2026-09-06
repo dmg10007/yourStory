@@ -18,20 +18,44 @@ For events classified as "plausible-projection" or "highly-speculative", use hed
 
 Write 2-5 short paragraphs of plain prose. No markdown headers, no bullet lists, no titles.`;
 
+const NARRATION_MODEL = "openai/gpt-oss-120b";
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ runId: string }> }) {
   const { runId } = await params;
+  const body = await request.json().catch(() => ({}) as { regenerate?: boolean });
+  const regenerate = body?.regenerate === true;
+
+  const supabase = await createSupabaseServerClient();
+  const { data: run, error } = await supabase.from("runs").select("*").eq("id", runId).single();
+  if (error || !run) {
+    return NextResponse.json({ error: "Run not found" }, { status: 404 });
+  }
+
+  if (!regenerate) {
+    const { data: cached, error: cacheError } = await supabase
+      .from("narratives")
+      .select("content, events, model_id, created_at")
+      .eq("run_id", runId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!cacheError && cached) {
+      return NextResponse.json({
+        narrative: cached.content,
+        events: cached.events,
+        modelId: cached.model_id,
+        generatedAt: cached.created_at,
+        cached: true,
+      });
+    }
+  }
 
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
       { error: "Narration is not configured. Set GROQ_API_KEY to enable this feature." },
       { status: 503 },
     );
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const { data: run, error } = await supabase.from("runs").select("*").eq("id", runId).single();
-  if (error || !run) {
-    return NextResponse.json({ error: "Run not found" }, { status: 404 });
   }
 
   try {
@@ -46,7 +70,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const events = deriveEvents(state, scenario);
 
     if (events.length === 0) {
-      return NextResponse.json({ narrative: "", events: [] });
+      return NextResponse.json({ narrative: "", events: [], cached: false });
     }
 
     const userContent = events
@@ -60,7 +84,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-120b",
+        model: NARRATION_MODEL,
         temperature: 0.4,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -70,15 +94,31 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
 
     if (!response.ok) {
-      const body = await response.text();
-      console.error("Groq narration request failed:", response.status, body);
+      const errorBody = await response.text();
+      console.error("Groq narration request failed:", response.status, errorBody);
       return NextResponse.json({ error: "Unable to generate narrative right now." }, { status: 502 });
     }
 
     const completion = await response.json();
     const narrative = completion.choices?.[0]?.message?.content?.trim() ?? "";
 
-    return NextResponse.json({ narrative, events });
+    const { data: saved, error: insertError } = await supabase
+      .from("narratives")
+      .insert({ run_id: runId, content: narrative, model_id: NARRATION_MODEL, events })
+      .select("created_at")
+      .single();
+
+    if (insertError) {
+      console.error("Failed to cache narrative:", insertError);
+    }
+
+    return NextResponse.json({
+      narrative,
+      events,
+      modelId: NARRATION_MODEL,
+      generatedAt: saved?.created_at ?? new Date().toISOString(),
+      cached: false,
+    });
   } catch (caught) {
     console.error("POST /api/runs/[runId]/narrate failed:", caught);
     const message = caught instanceof SimulationValidationError ? caught.message : "Unable to generate narrative.";
