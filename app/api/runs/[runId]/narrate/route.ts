@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { replayRun, getScenario } from "@/lib/runs/replay";
 import { deriveEvents } from "@/lib/runs/narrative";
+import { validateNarrative } from "@/lib/runs/narrative-validation";
 import { SimulationValidationError } from "@/domain/simulation";
 
 const SYSTEM_PROMPT = `You are a narration renderer for a historical alternate-history simulator called Your Story.
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!regenerate) {
     const { data: cached, error: cacheError } = await supabase
       .from("narratives")
-      .select("content, events, model_id, created_at")
+      .select("content, events, model_id, created_at, flagged, flagged_terms, validation_version")
       .eq("run_id", runId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -101,10 +102,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const completion = await response.json();
     const narrative = completion.choices?.[0]?.message?.content?.trim() ?? "";
+    const validation = validateNarrative(narrative, events);
 
     const { data: saved, error: insertError } = await supabase
       .from("narratives")
-      .insert({ run_id: runId, content: narrative, model_id: NARRATION_MODEL, events })
+      .insert({
+        run_id: runId,
+        content: narrative,
+        model_id: NARRATION_MODEL,
+        events,
+        flagged: validation.flagged,
+        flagged_terms: validation.flaggedTerms,
+        validation_version: validation.validationVersion,
+      })
       .select("created_at")
       .single();
 
