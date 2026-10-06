@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { dunkirk1940 } from "@/data/scenarios/dunkirk-1940";
+import { initializeSimulation, resolveDecision } from "@/lib/simulation-engine";
 import {
   NarrationFormatError,
+  buildNarrationInput,
   buildNarrationPrompt,
   collectSources,
   narrationJsonSchema,
@@ -43,6 +45,18 @@ describe("narration input", () => {
     expect(input.allowedIds.size).toBe(input.events.length + input.seeds.length);
     expect(input.allowedIds.has("evt-pivot-cabinet-negotiates")).toBe(true);
     input.seeds.forEach((seed) => expect(input.allowedIds.has(seed.id)).toBe(true));
+  });
+
+  it("narrates a pivot from its own events and ignores resolved fork events", () => {
+    const resolveCabinetFork = (basicChoiceId: string) => {
+      const initial = initializeSimulation(dunkirk1940, { basicChoiceId });
+      return resolveDecision(initial, dunkirk1940, { forkId: "armistice-debate-1940", choiceId: "continue-war" });
+    };
+    const pivotInput = buildNarrationInput(dunkirk1940, resolveCabinetFork("war-cabinet-negotiates"), "run-1");
+    const baselineInput = buildNarrationInput(dunkirk1940, resolveCabinetFork("historical"), "run-1");
+
+    expect(pivotInput.events.map(({ id }) => id)).toEqual(["evt-pivot-cabinet-negotiates"]);
+    expect(baselineInput.events.map(({ id }) => id)).toEqual(["evt-halt-order-historical", "evt-cabinet-continue"]);
   });
 
   it("is deterministic per run and varies across runs", () => {

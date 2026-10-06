@@ -102,7 +102,10 @@ export function buildNarrationInput(
     throw new SimulationValidationError(`Unknown basic choice: ${state.selectedBasicChoiceId}`);
   }
 
-  const events = deriveEvents(state, scenario);
+  // A pivot changes one moment, so it narrates from its own sourced events. Events from resolved
+  // forks describe other, independent decisions and can contradict the pivot (for example a fork
+  // event in which Churchill rallies the Cabinet alongside a pivot in which Halifax prevails).
+  const events = choice.consequenceSeeds.length > 0 ? choice.narrativeEvents : deriveEvents(state, scenario);
   const seeds = sampleConsequenceSeeds(choice, randomSeed);
   const hasSeeds = (horizon: NarrativeHorizon) => seeds.some((seed) => seed.horizon === horizon);
   const horizons = narrativeHorizons.filter((horizon) =>
