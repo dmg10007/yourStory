@@ -1,4 +1,4 @@
-import type { ScenarioDefinition } from "@/domain/scenario";
+import type { AvailabilityCondition, ScenarioDefinition } from "@/domain/scenario";
 import {
   type DecisionCommand,
   type DeterministicSimulationState,
@@ -26,6 +26,24 @@ function validateVariableValue(variable: ScenarioDefinition["advancedVariables"]
   if (!isStepAligned(value, variable.minimum, variable.step)) {
     throw new SimulationValidationError(`Advanced variable ${variable.id} must align with step ${variable.step}`);
   }
+}
+
+type DecisionFork = ScenarioDefinition["decisionForks"][number];
+
+function isConditionMet(state: DeterministicSimulationState, condition: AvailabilityCondition) {
+  if (condition.type === "choice-resolved") {
+    return state.trace.some((entry) => entry.type === "decision-resolved" && entry.forkId === condition.forkId && condition.choiceIds.includes(entry.choiceId));
+  }
+  return (state.causalFactorValues[condition.factorId] ?? 0) >= condition.value;
+}
+
+/** A fork is available when it is unresolved and every one of its prerequisite conditions holds. */
+export function isForkAvailable(state: DeterministicSimulationState, fork: DecisionFork): boolean {
+  return !state.resolvedForkIds.includes(fork.id) && fork.availableWhen.every((condition) => isConditionMet(state, condition));
+}
+
+export function getAvailableForks(state: DeterministicSimulationState, scenario: ScenarioDefinition): DecisionFork[] {
+  return scenario.decisionForks.filter((fork) => isForkAvailable(state, fork));
 }
 
 export function initializeSimulation(
@@ -89,6 +107,9 @@ export function resolveDecision(
   const fork = scenario.decisionForks.find(({ id }) => id === command.forkId);
   if (!fork) {
     throw new SimulationValidationError(`Unknown decision fork: ${command.forkId}`);
+  }
+  if (!fork.availableWhen.every((condition) => isConditionMet(state, condition))) {
+    throw new SimulationValidationError(`Decision fork is not yet available: ${command.forkId}`);
   }
   const choice = fork.choices.find(({ id }) => id === command.choiceId);
   if (!choice) {

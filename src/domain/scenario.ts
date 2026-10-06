@@ -41,6 +41,21 @@ const factorEffectSchema = z.object({
   delta: z.number(),
 });
 
+const availabilityConditionSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("choice-resolved"),
+    forkId: z.string().min(1),
+    choiceIds: z.array(z.string().min(1)).min(1),
+  }),
+  z.object({
+    type: z.literal("factor-at-least"),
+    factorId: z.string().min(1),
+    value: z.number(),
+  }),
+]);
+
+export type AvailabilityCondition = z.infer<typeof availabilityConditionSchema>;
+
 const basicChoiceSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
@@ -94,6 +109,7 @@ export const scenarioSchema = z
       id: z.string().min(1),
       date: historicalDateSchema,
       label: z.string().min(1),
+      availableWhen: z.array(availabilityConditionSchema).default([]),
       choices: z.array(decisionChoiceSchema).min(2),
     })),
   })
@@ -163,6 +179,26 @@ export const scenarioSchema = z
 
     scenario.decisionForks.forEach((fork, forkIndex) => {
       addDuplicateIssues(fork.choices, `decisionForks.${forkIndex}.choices`);
+      fork.availableWhen.forEach((condition, conditionIndex) => {
+        const conditionPath = ["decisionForks", forkIndex, "availableWhen", conditionIndex];
+        if (condition.type === "choice-resolved") {
+          const priorIndex = scenario.decisionForks.findIndex(({ id }) => id === condition.forkId);
+          if (priorIndex === -1) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...conditionPath, "forkId"], message: `Unknown decision fork: ${condition.forkId}` });
+          } else if (priorIndex >= forkIndex) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...conditionPath, "forkId"], message: `A fork may only depend on a fork declared before it: ${condition.forkId}` });
+          } else {
+            const priorFork = scenario.decisionForks[priorIndex];
+            condition.choiceIds.forEach((choiceId, choiceIdIndex) => {
+              if (!priorFork.choices.some(({ id }) => id === choiceId)) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...conditionPath, "choiceIds", choiceIdIndex], message: `Unknown choice ${choiceId} for decision fork ${condition.forkId}` });
+              }
+            });
+          }
+        } else if (!factorIds.has(condition.factorId)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...conditionPath, "factorId"], message: `Unknown causal factor: ${condition.factorId}` });
+        }
+      });
       fork.choices.forEach((choice, choiceIndex) => {
         choice.effects.forEach((effect, effectIndex) => {
           if (!factorIds.has(effect.factorId)) {
