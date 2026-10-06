@@ -1,4 +1,5 @@
 import { scenarioSchema, type ScenarioDefinition } from "@/domain/scenario";
+import { cabinetNegotiatesChoice, dunkirkPivotSources, noHaltOrderPivot, reducedEvacuationPivot } from "./dunkirk-1940-pivots";
 
 export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
   id: "dunkirk-1940",
@@ -6,11 +7,11 @@ export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
   eventPackId: "wwii-europe",
   status: "reviewed",
   version: "0.2.0",
-  sourceLibraryVersion: "wwii-europe-reviewed-2",
+  sourceLibraryVersion: "wwii-europe-reviewed-3",
   divergence: {
     date: "1940-05-24",
     historicalEvent: "The German halt order pauses armored movement toward the Dunkirk perimeter.",
-    counterfactualPremise: "The player changes evacuation capacity or the operational pressure on the Allied perimeter, then resolves subsequent political and strategic decisions through the summer of 1940.",
+    counterfactualPremise: "The player changes evacuation capacity, the German halt order, or the British War Cabinet's response, then resolves subsequent political and strategic decisions through the summer of 1940.",
     initialConditions: [
       "The British Expeditionary Force and Allied troops are withdrawing toward Dunkirk.",
       "The evacuation is constrained by time, transport capacity, weather, and the defensive perimeter.",
@@ -71,6 +72,7 @@ export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
       rightsNote: "Museum-published reference; verify against primary sources before republication.",
       reviewStatus: "reviewed",
     },
+    ...dunkirkPivotSources,
   ],
   basicChoices: [
     {
@@ -102,6 +104,7 @@ export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
         evidenceIds: ["src-dunkirk-001"],
         causalFactorIds: ["evacuation-capacity", "allied-trained-force"],
       }],
+      ...reducedEvacuationPivot,
     },
     {
       id: "expanded-evacuation",
@@ -132,7 +135,9 @@ export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
         evidenceIds: ["src-dunkirk-001"],
         causalFactorIds: ["evacuation-capacity", "allied-trained-force"],
       }],
+      ...noHaltOrderPivot,
     },
+    cabinetNegotiatesChoice,
   ],
   advancedVariables: [
     { id: "evacuation-capacity", category: "military", label: "Evacuation capacity", baseline: 0, minimum: -2, maximum: 2, step: 1, affectedFactorIds: ["evacuation-capacity", "allied-trained-force"] },
