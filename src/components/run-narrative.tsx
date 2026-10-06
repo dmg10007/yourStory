@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { narrationVoiceLabels, narrationVoices, type NarrationVoice } from "@/lib/runs/narration-voices";
 
 type Horizon = "aftermath" | "decade" | "present";
@@ -58,11 +58,12 @@ function paragraphs(text: string): string[] {
   return text.split("\n\n").filter(Boolean);
 }
 
-export function RunNarrative({ runId }: { runId: string }) {
+export function RunNarrative({ runId, autoStart = false }: { runId: string; autoStart?: boolean }) {
   const [result, setResult] = useState<NarrativeResult | null>(null);
   const [voice, setVoice] = useState<NarrationVoice | "">("");
   const [status, setStatus] = useState<"idle" | "loading" | "regenerating" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const started = useRef(false);
 
   async function fetchNarrative(regenerate: boolean) {
     setStatus(regenerate ? "regenerating" : "loading");
@@ -82,6 +83,14 @@ export function RunNarrative({ runId }: { runId: string }) {
       setStatus("error");
     }
   }
+
+  useEffect(() => {
+    if (!autoStart || started.current) return;
+    started.current = true;
+    void fetchNarrative(false);
+    // Start once per mount; the ref also keeps React strict mode from sending two requests.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   const isBusy = status === "loading" || status === "regenerating";
   const hasNarrative = Boolean(result && result.narrative);

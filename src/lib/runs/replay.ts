@@ -1,14 +1,10 @@
 import { type ScenarioDefinition } from "@/domain/scenario";
 import { initializeSimulation, resolveDecision } from "@/lib/simulation-engine";
 import { SimulationValidationError, type DecisionCommand } from "@/domain/simulation";
-import { dunkirk1940 } from "@/data/scenarios/dunkirk-1940";
-
-const scenarioRegistry: Record<string, ScenarioDefinition> = {
-  "dunkirk-1940": dunkirk1940,
-};
+import { scenariosById } from "@/data/scenarios";
 
 export function getScenario(scenarioId: string): ScenarioDefinition {
-  const scenario = scenarioRegistry[scenarioId];
+  const scenario = scenariosById.get(scenarioId);
   if (!scenario) throw new SimulationValidationError(`Unknown scenario: ${scenarioId}`);
   return scenario;
 }
