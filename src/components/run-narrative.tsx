@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { narrationVoiceLabels, narrationVoices, type NarrationVoice } from "@/lib/runs/narration-voices";
+import styles from "./run-narrative.module.css";
 
 type Horizon = "aftermath" | "decade" | "present";
 type Classification = "documented-fact" | "direct-inference" | "plausible-projection" | "highly-speculative";
@@ -103,104 +104,104 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
   return (
     <section className="run-section run-narrative">
       <h2>Narrative</h2>
-      {!hasNarrative && !isBusy && (
-        <p className="fork-empty">
-          Render the approved, cited events and consequence seeds above into prose. The model may only rephrase this
-          material. It cannot add facts, names, or dates that were not authored and reviewed.
-        </p>
-      )}
-      <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", marginTop: "12px" }}>
-        <label style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
-          Voice{" "}
-          <select value={voice} onChange={(event) => setVoice(event.target.value as NarrationVoice | "")} disabled={isBusy}>
-            <option value="">Surprise me</option>
-            {narrationVoices.map((item) => (
-              <option key={item} value={item}>{narrationVoiceLabels[item]}</option>
-            ))}
-          </select>
-        </label>
+      <div className={styles.body}>
         {!hasNarrative && !isBusy && (
-          <button className="button" onClick={() => fetchNarrative(false)} type="button">Generate narrative</button>
+          <p className="fork-empty">
+            Render the approved, cited events and consequence seeds above into prose. The model may only rephrase this
+            material. It cannot add facts, names, or dates that were not authored and reviewed.
+          </p>
         )}
-      </div>
-      {status === "loading" && <p className="fork-empty">Generating narrative...</p>}
-      {status === "regenerating" && <p className="fork-empty">Regenerating narrative...</p>}
-      {error && <p role="alert">{error}</p>}
-      {result && hasNarrative && (
-        <>
-          {result.headline && <h3>{result.headline}</h3>}
-          {sections.length > 0 ? (
-            sections.map((section) => {
-              const label = HORIZON_LABELS[section.horizon];
-              return (
-                <div key={section.horizon} className="narrative-prose">
-                  <h4>
-                    {label.title}{" "}
-                    <span className={`event-classification ${label.className}`}>{label.badge}</span>
-                  </h4>
-                  {paragraphs(section.text).map((paragraph, index) => (
+        <div className={styles.controls}>
+          <label className={styles.voiceLabel}>
+            Voice{" "}
+            <select value={voice} onChange={(event) => setVoice(event.target.value as NarrationVoice | "")} disabled={isBusy}>
+              <option value="">Surprise me</option>
+              {narrationVoices.map((item) => (
+                <option key={item} value={item}>{narrationVoiceLabels[item]}</option>
+              ))}
+            </select>
+          </label>
+          {!hasNarrative && !isBusy && (
+            <button className="button" onClick={() => fetchNarrative(false)} type="button">Generate narrative</button>
+          )}
+        </div>
+        {status === "loading" && <p className="fork-empty">Generating narrative...</p>}
+        {status === "regenerating" && <p className="fork-empty">Regenerating narrative...</p>}
+        {error && <p role="alert">{error}</p>}
+        {result && hasNarrative && (
+          <>
+            <div className={styles.story}>
+              {result.headline && <h3 className={styles.headline}>{result.headline}</h3>}
+              {sections.length > 0 ? (
+                sections.map((section) => {
+                  const label = HORIZON_LABELS[section.horizon];
+                  return (
+                    <section key={section.horizon} className={styles.section}>
+                      <div className={styles.sectionHeader}>
+                        <h3 className={styles.sectionHeading}>{label.title}</h3>
+                        <span className={`event-classification ${label.className}`}>{label.badge}</span>
+                      </div>
+                      <div className={styles.prose}>
+                        {paragraphs(section.text).map((paragraph, index) => (
+                          <p key={index}>{paragraph}</p>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })
+              ) : (
+                <div className={styles.prose}>
+                  {paragraphs(result.narrative).map((paragraph, index) => (
                     <p key={index}>{paragraph}</p>
                   ))}
                 </div>
-              );
-            })
-          ) : (
-            <div className="narrative-prose">
-              {paragraphs(result.narrative).map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
+              )}
+              <p className={styles.notice}>
+                AI-generated from the sourced material listed below. Sections marked as projection or speculation reach
+                beyond the sources.
+              </p>
             </div>
-          )}
-          <p className="fork-empty">
-            AI-generated from the sourced material listed below. Sections marked as projection or speculation reach
-            beyond the sources.
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", marginTop: "12px" }}>
-            {result.cached && (
-              <span style={{ fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", border: "1px solid var(--line)", padding: "3px 8px" }}>
-                Cached
-              </span>
-            )}
-            {voiceLabel && <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Voice: {voiceLabel}</span>}
-            {result.modelId && <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Model: {result.modelId}</span>}
-            {result.generatedAt && (
-              <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
-                Generated {new Date(result.generatedAt).toLocaleString()}
-              </span>
-            )}
-            <button className="button" onClick={() => fetchNarrative(true)} type="button" disabled={isBusy}>
-              {isBusy ? "Regenerating..." : "Regenerate"}
-            </button>
-          </div>
-          <details className="narrative-sources">
-            <summary>How we know ({events.length + seeds.length} items, {sources.length} sources)</summary>
-            <ul className="narrative-source-list">
-              {events.map((event) => (
-                <li key={event.id}>
-                  <span className={`event-classification ${event.classification}`}>{event.classification}</span>
-                  {" "}{event.date} - {event.title}
-                </li>
-              ))}
-              {seeds.map((seed) => (
-                <li key={seed.id}>
-                  <span className={`event-classification ${seed.classification}`}>{seed.classification}</span>
-                  {" "}{HORIZON_LABELS[seed.horizon].title} - {seed.title}
-                </li>
-              ))}
-            </ul>
-            {sources.length > 0 && (
+            <div className={styles.meta}>
+              {result.cached && <span className={styles.cachedBadge}>Cached</span>}
+              {voiceLabel && <span className={styles.metaText}>Voice: {voiceLabel}</span>}
+              {result.modelId && <span className={styles.metaText}>Model: {result.modelId}</span>}
+              {result.generatedAt && (
+                <span className={styles.metaText}>Generated {new Date(result.generatedAt).toLocaleString()}</span>
+              )}
+              <button className="button" onClick={() => fetchNarrative(true)} type="button" disabled={isBusy}>
+                {isBusy ? "Regenerating..." : "Regenerate"}
+              </button>
+            </div>
+            <details className="narrative-sources">
+              <summary>How we know ({events.length + seeds.length} items, {sources.length} sources)</summary>
               <ul className="narrative-source-list">
-                {sources.map((source) => (
-                  <li key={source.id}>
-                    <a href={source.sourceUrl} target="_blank" rel="noreferrer">{source.title}</a>
-                    {" "}({source.author})
+                {events.map((event) => (
+                  <li key={event.id}>
+                    <span className={`event-classification ${event.classification}`}>{event.classification}</span>
+                    {" "}{event.date} - {event.title}
+                  </li>
+                ))}
+                {seeds.map((seed) => (
+                  <li key={seed.id}>
+                    <span className={`event-classification ${seed.classification}`}>{seed.classification}</span>
+                    {" "}{HORIZON_LABELS[seed.horizon].title} - {seed.title}
                   </li>
                 ))}
               </ul>
-            )}
-          </details>
-        </>
-      )}
+              {sources.length > 0 && (
+                <ul className="narrative-source-list">
+                  {sources.map((source) => (
+                    <li key={source.id}>
+                      <a href={source.sourceUrl} target="_blank" rel="noreferrer">{source.title}</a>
+                      {" "}({source.author})
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </details>
+          </>
+        )}
+      </div>
     </section>
   );
 }
