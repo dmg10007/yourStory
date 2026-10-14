@@ -32,10 +32,10 @@ export function createGroqRequester({ apiKey, model, fetchImpl = fetch }: GroqCo
       },
       body: JSON.stringify({
         model,
-        temperature: 0.6,
+        temperature: 0.7,
         reasoning_effort: "low",
         include_reasoning: false,
-        max_completion_tokens: 3000,
+        max_completion_tokens: 5000,
         messages,
         response_format: {
           type: "json_schema",

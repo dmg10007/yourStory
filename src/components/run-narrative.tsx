@@ -107,8 +107,8 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
       <div className={styles.body}>
         {!hasNarrative && !isBusy && (
           <p className="fork-empty">
-            Render the approved, cited events and consequence seeds above into prose. The model may only rephrase this
-            material. It cannot add facts, names, or dates that were not authored and reviewed.
+            Render the approved, cited events and consequence seeds above into prose. Sourced sections stay within
+            the evidence; the projection and speculation sections follow the changed factors forward.
           </p>
         )}
         <div className={styles.controls}>
@@ -125,8 +125,8 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
             <button className="button" onClick={() => fetchNarrative(false)} type="button">Generate narrative</button>
           )}
         </div>
-        {status === "loading" && <p className="fork-empty">Generating narrative...</p>}
-        {status === "regenerating" && <p className="fork-empty">Regenerating narrative...</p>}
+        {status === "loading" && <p className={styles.loading}>The timeline is shifting...</p>}
+        {status === "regenerating" && <p className={styles.loading}>Rewriting the story...</p>}
         {error && <p role="alert">{error}</p>}
         {result && hasNarrative && (
           <>

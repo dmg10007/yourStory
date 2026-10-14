@@ -64,7 +64,8 @@ export function PlayScreen({ moment }: { moment: MomentSummary }) {
     <div className={styles.stage}>
       <p className={styles.hook}>{moment.hook}</p>
       <p className={styles.warning} role="note">{moment.contentWarning}</p>
-      <h2>Change one thing</h2>
+      <h2>What would you change?</h2>
+      <p className={styles.prompt}>Each of these was a real near miss. Pick one and watch history bend.</p>
       <ul className={styles.pivotList}>
         {moment.pivots.map((pivot) => {
           const isSelected = pivot.id === selectedId;
@@ -99,7 +100,7 @@ export function PlayScreen({ moment }: { moment: MomentSummary }) {
         <button className="button" onClick={rewriteHistory} type="button" disabled={!selected || status === "starting"}>
           {status === "starting" ? "Rewriting history..." : "Rewrite history"}
         </button>
-        {!selected && <span className={styles.share}>Choose a change above.</span>}
+        {!selected && <span className={styles.share}>Pick a change to begin.</span>}
       </div>
       {error && <p role="alert">{error}</p>}
     </div>

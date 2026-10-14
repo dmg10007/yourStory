@@ -62,10 +62,16 @@ export interface NarrationPivot {
   minimalRewrite?: string | undefined;
 }
 
+export interface NarrationFactor {
+  id: string;
+  label: string;
+}
+
 export interface NarrationInput {
   scenarioTitle: string;
   setting: string;
   pivot: NarrationPivot;
+  factors: NarrationFactor[];
   voice: NarrationVoice;
   horizons: NarrativeHorizon[];
   events: NarrativeEvent[];
@@ -112,6 +118,9 @@ export function buildNarrationInput(
     horizon === "aftermath" ? events.length > 0 || hasSeeds(horizon) : hasSeeds(horizon),
   );
 
+  const factorIds = new Set([...events, ...seeds].flatMap(({ causalFactorIds }) => causalFactorIds));
+  const factors = scenario.causalFactors.filter(({ id }) => factorIds.has(id)).map(({ id, label }) => ({ id, label }));
+
   return {
     scenarioTitle: scenario.title,
     setting: `${scenario.title}. ${scenario.divergence.historicalEvent} ${scenario.divergence.initialConditions.join(" ")}`,
@@ -122,6 +131,7 @@ export function buildNarrationInput(
       interventionSummary: choice.interventionSummary,
       minimalRewrite: choice.plausibility?.minimalRewrite,
     },
+    factors,
     voice: voiceOverride ?? pickNarrationVoice(randomSeed),
     horizons,
     events,
@@ -130,18 +140,24 @@ export function buildNarrationInput(
   };
 }
 
-const SYSTEM_PROMPT = `You are the narration renderer for Your Story, an alternate-history game. A player has changed one historical moment. You receive the setting, the player's pivot, approved events that were sourced and reviewed by a human, and consequence seeds grouped by time horizon (aftermath, decade, present). Every item has an ID and an evidence classification.
+const SYSTEM_PROMPT = `You are the narration renderer for Your Story, an alternate-history game. A player has changed one historical moment. You receive the setting, the player's pivot, the factors that changed, approved events that were sourced and reviewed by a human, and consequence seeds grouped by time horizon (aftermath, decade, present). Every event and seed has an ID and an evidence classification.
 
-Write a short narrative in the requested voice. Return JSON with a headline and one section per required horizon, in the order given.
+Write a rich narrative in the requested voice. Return JSON with a headline and one section per required horizon, in the order given.
 
-Rules:
-1. Use ONLY the supplied material. Do not add any person, organization, place, date, number, quotation, or event that is not in it. Written-out numbers count as numbers.
-2. Never strengthen a claim. A documented-fact may be stated plainly. A direct-inference or plausible-projection needs hedged verbs such as likely, would, or might. A highly-speculative item must be framed clearly as speculation.
-3. List in basedOn the ID of every event or seed a section uses. Never list an ID that was not supplied. Each section must use at least one item from its own horizon; for aftermath that means an approved event or an aftermath seed.
-4. The decade section and the present section must use hedged language. The present section must make plain that it is speculation about an alternate present, not established history.
-5. The voice changes tone only. Do not invent a narrator's name, a publication, a byline, or a dateline.
-6. Write the headline in sentence case, with capital letters only on the first word and proper nouns.
-7. Each section is one or two short paragraphs of plain prose separated by a blank line. No markdown and no lists.`;
+The aftermath section is strict:
+1. Use ONLY the supplied material. Do not add any person, organization, place, date, number, quotation, or event that is not in it. Spend your words on depth instead: explain what each supplied item meant, how it connected to the pivot, and how it would have felt to people living through it, without adding new facts.
+2. Never strengthen a claim. A documented-fact may be stated plainly. A direct-inference or plausible-projection needs hedged verbs such as likely, would, or might.
+
+The decade and present sections are grounded alt-history narrative:
+3. Write them as vivid alt-history prose. Follow the changed factors forward and describe how politics, alliances, institutions, and everyday life might have unfolded. Develop each supplied seed into a fuller picture instead of repeating it.
+4. Ground every development. Name the cause it grows from, in plain words, either the pivot or a supplied seed, and show the chain with words such as because, as a result, or which meant. Do not add a twist that does not follow from the changed factors.
+5. You may imagine plausible consequences and scenes. Do not invent named individuals, quotations, statistics, or dates that are not in the supplied material, and never state anything as established fact. Hedge throughout with words such as would, might, could, and likely. The present section must make plain that it is speculation about an alternate present, not established history.
+
+For every section:
+6. List in basedOn the ID of every event or seed the section uses. Never list an ID that was not supplied. Each section must use at least one item from its own horizon; for aftermath that means an approved event or an aftermath seed.
+7. The voice changes tone only. Do not invent a narrator's name, a publication, a byline, or a dateline.
+8. Write the headline in sentence case, with capital letters only on the first word and proper nouns.
+9. Write three or four paragraphs per section, at least 120 words per section, as plain prose separated by blank lines. No markdown and no lists.`;
 
 const VOICE_GUIDES: Record<NarrationVoice, string> = {
   historian: "A historian's retrospective: measured and analytical, written from a distance of decades.",
@@ -162,6 +178,11 @@ export function buildNarrationPrompt(input: NarrationInput): { system: string; u
 
   if (input.pivot.minimalRewrite) {
     lines.push(`Why this change was plausible (background): ${input.pivot.minimalRewrite}`);
+  }
+
+  if (input.factors.length > 0) {
+    lines.push("", "Changed factors (ground every development in these):");
+    input.factors.forEach((factor) => lines.push(`- ${factor.label}`));
   }
 
   lines.push("", "Approved events:");
@@ -242,5 +263,6 @@ export function toSourceItems(input: NarrationInput): NarrativeEvent[] {
       input.pivot.label,
       `${input.pivot.description} ${input.pivot.interventionSummary} ${input.pivot.minimalRewrite ?? ""}`,
     ),
+    context("context-factors", "Changed factors", input.factors.map(({ label }) => label).join(" ")),
   ];
 }

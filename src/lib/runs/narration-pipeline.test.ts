@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Narration } from "./narration";
 import { NarrationGenerationError, produceNarration, type DraftRequester } from "./narration-pipeline";
-import { buildValidNarration, inputFor } from "./narration-fixture";
+import { LONG_TEXT, buildValidNarration, inputFor } from "./narration-fixture";
 
 const input = inputFor("war-cabinet-negotiates");
 const valid = buildValidNarration(input);
@@ -17,7 +17,14 @@ function withUnknownIdAndNumber(narration: Narration): Narration {
   const flagged = withUnknownId(narration);
   return {
     ...flagged,
-    sections: flagged.sections.map((section, index) => (index === 0 ? { ...section, text: "In 1999 this would likely have shaped events, and it might have gone differently." } : section)),
+    sections: flagged.sections.map((section, index) => (index === 0 ? { ...section, text: `In 1999 ${LONG_TEXT.toLowerCase()}` } : section)),
+  };
+}
+
+function withNoteOnly(narration: Narration): Narration {
+  return {
+    ...narration,
+    sections: narration.sections.map((section, index) => (index === 1 ? { ...section, text: `Georgy Zhukov would likely have advised caution because ${LONG_TEXT.toLowerCase()}` } : section)),
   };
 }
 
@@ -37,6 +44,15 @@ describe("produceNarration", () => {
     expect(requester).toHaveBeenCalledTimes(1);
   });
 
+  it("does not retry for a review note alone", async () => {
+    const requester = requesterReturning(JSON.stringify(withNoteOnly(valid)));
+    const result = await produceNarration(input, requester);
+
+    expect(result.attempts).toBe(1);
+    expect(result.validation.flagged).toBe(false);
+    expect(result.validation.flaggedTerms.some(({ severity }) => severity === "note")).toBe(true);
+  });
+
   it("retries once with the findings fed back and returns a clean second draft", async () => {
     const requester = requesterReturning(JSON.stringify(withUnknownId(valid)), JSON.stringify(valid));
     const result = await produceNarration(input, requester);
@@ -44,10 +60,10 @@ describe("produceNarration", () => {
 
     expect(result.attempts).toBe(2);
     expect(result.validation.flagged).toBe(false);
-    expect(retryMessages[retryMessages.length - 1].content).toContain("unknown-source-id: made-up-id");
+    expect(retryMessages[retryMessages.length - 1].content).toContain("unknown-source-id (made-up-id)");
   });
 
-  it("keeps the second draft when it has fewer findings", async () => {
+  it("keeps the second draft when it has fewer errors", async () => {
     const first = withUnknownIdAndNumber(valid);
     const second = withUnknownId(valid);
     const result = await produceNarration(input, requesterReturning(JSON.stringify(first), JSON.stringify(second)));

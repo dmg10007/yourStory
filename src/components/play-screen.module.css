@@ -11,11 +11,21 @@
   margin: 0;
 }
 
+.prompt {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted, #999);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
 .warning {
   max-width: 680px;
   margin: 0;
   padding: 12px 16px;
   border: 1px solid var(--line, #444);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
   color: var(--muted, #999);
   font-size: 0.85rem;
   line-height: 1.5;
@@ -26,7 +36,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 16px;
+  gap: 18px;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
@@ -41,21 +51,27 @@
   flex-direction: column;
   gap: 8px;
   text-align: left;
-  padding: 18px;
+  padding: 20px;
   border: 1px solid var(--line, #444);
-  background: transparent;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
   color: inherit;
   font: inherit;
   cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
-.pivotButton:hover {
+.pivotButton:hover:not(:disabled) {
   border-color: var(--accent, #c9a45c);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
 }
 
 .pivotButtonSelected {
   border-color: var(--accent, #c9a45c);
-  outline: 1px solid var(--accent, #c9a45c);
+  background: color-mix(in srgb, var(--accent, #c9a45c) 12%, transparent);
+  box-shadow: 0 0 0 1px var(--accent, #c9a45c), 0 10px 28px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
 }
 
 .pivotTitle {
@@ -69,6 +85,7 @@
 }
 
 .why {
+  padding: 0 6px;
   font-size: 0.85rem;
   color: var(--muted, #999);
 }
@@ -98,4 +115,28 @@
 .share {
   color: var(--muted, #999);
   font-size: 0.9rem;
+}
+
+.stage :global(.button) {
+  border-radius: 999px;
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.stage :global(.button):hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  filter: brightness(1.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pivotButton,
+  .stage :global(.button) {
+    transition: none;
+  }
+
+  .pivotButton:hover:not(:disabled),
+  .pivotButtonSelected,
+  .stage :global(.button):hover:not(:disabled) {
+    transform: none;
+  }
 }

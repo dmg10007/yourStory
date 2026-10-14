@@ -86,6 +86,15 @@ describe("narration prompt and parsing", () => {
     input.allowedIds.forEach((id) => expect(prompt.user).toContain(`[${id}]`));
   });
 
+  it("lists the factors the supplied material changes and puts them in the prompt", () => {
+    const input = inputFor("war-cabinet-negotiates");
+    const prompt = buildNarrationPrompt(input);
+
+    expect(input.factors.map(({ id }) => id)).toContain("british-political-resolve");
+    expect(prompt.user).toContain("Changed factors");
+    expect(prompt.user).toContain("British political resolve");
+  });
+
   it("emits a JSON schema that satisfies Groq strict mode", () => {
     expectStrict(narrationJsonSchema);
   });

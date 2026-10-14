@@ -1,5 +1,10 @@
 import { buildNarrationPrompt, NarrationFormatError, parseNarration, type Narration, type NarrationInput } from "./narration";
-import { validateNarration, type NarrationValidationResult } from "./narration-validation";
+import {
+  countErrors,
+  validateNarration,
+  type NarrationFindingRule,
+  type NarrationValidationResult,
+} from "./narration-validation";
 
 export interface NarrationMessage {
   role: "system" | "user";
@@ -23,6 +28,17 @@ export class NarrationGenerationError extends Error {
 
 const MAX_ATTEMPTS = 2;
 
+const ADVICE: Record<NarrationFindingRule, string> = {
+  "invalid-structure": "Return exactly the required sections, in the required order.",
+  "unknown-source-id": "List only IDs that were supplied.",
+  "missing-citation": "Cite at least one supplied item from this section's own horizon in basedOn.",
+  "missing-hedging": "Use more hedged language such as would, might, could, and likely.",
+  "too-short": "Write more: develop the supplied material in depth to reach the minimum length.",
+  "missing-causal-link": "Show the chain of cause, naming what changed, with words such as because or as a result.",
+  "unsupported-number": "Remove numbers and dates that are not in the supplied material.",
+  "unsupported-name": "Remove people and organizations that are not in the supplied material.",
+};
+
 function retryNotice(reasons: string[]): NarrationMessage {
   return {
     role: "user",
@@ -36,8 +52,8 @@ function retryNotice(reasons: string[]): NarrationMessage {
 
 /**
  * Requests a narration, validates it, and retries once with the findings fed back to the model.
- * When both drafts are flagged it keeps the one with fewer findings, so the caller can store it
- * as flagged for review instead of discarding the play.
+ * When both drafts have errors it keeps the one with fewer, so the caller can store it as flagged
+ * for review instead of discarding the play. Review notes never trigger a retry.
  */
 export async function produceNarration(input: NarrationInput, requestDraft: DraftRequester): Promise<NarrationResult> {
   const prompt = buildNarrationPrompt(input);
@@ -66,11 +82,13 @@ export async function produceNarration(input: NarrationInput, requestDraft: Draf
     }
 
     const validation = validateNarration(narration, input);
-    if (!best || validation.flaggedTerms.length < best.validation.flaggedTerms.length) {
+    if (!best || countErrors(validation) < countErrors(best.validation)) {
       best = { narration, validation };
     }
     if (!validation.flagged) break;
-    reasons = validation.flaggedTerms.map(({ rule, term }) => `${rule}: ${term}`);
+    reasons = validation.flaggedTerms
+      .filter(({ severity }) => severity === "error")
+      .map(({ rule, term }) => `${rule} (${term}): ${ADVICE[rule]}`);
   }
 
   if (!best) throw new NarrationGenerationError("The model did not return a usable narration.");
