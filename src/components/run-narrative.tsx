@@ -49,10 +49,20 @@ interface NarrativeResult {
   cached: boolean;
 }
 
-const HORIZON_LABELS: Record<Horizon, { title: string; badge: string; className: Classification }> = {
-  aftermath: { title: "Aftermath", badge: "Anchored in sources", className: "direct-inference" },
-  decade: { title: "The following decade", badge: "Reasoned projection", className: "plausible-projection" },
-  present: { title: "The world today", badge: "Speculation", className: "highly-speculative" },
+const HORIZON_LABELS: Record<Horizon, { title: string; badge: string; className: Classification; note: string | null }> = {
+  aftermath: { title: "Aftermath", badge: "Anchored in sources", className: "direct-inference", note: null },
+  decade: {
+    title: "The following decade",
+    badge: "Reasoned projection",
+    className: "plausible-projection",
+    note: "Told as if it happened. A reasoned projection from the changed factors, not established history.",
+  },
+  present: {
+    title: "The world today",
+    badge: "Speculation",
+    className: "highly-speculative",
+    note: "Told as if it happened. An imagined present, not established history.",
+  },
 };
 
 function paragraphs(text: string): string[] {
@@ -107,8 +117,8 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
       <div className={styles.body}>
         {!hasNarrative && !isBusy && (
           <p className="fork-empty">
-            Render the approved, cited events and consequence seeds above into prose. Sourced sections stay within
-            the evidence; the projection and speculation sections follow the changed factors forward.
+            Render the approved, cited events and consequence seeds above into prose. The aftermath stays within the
+            evidence; the decade and present sections follow the changed factors forward as an imagined timeline.
           </p>
         )}
         <div className={styles.controls}>
@@ -141,6 +151,7 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
                         <h3 className={styles.sectionHeading}>{label.title}</h3>
                         <span className={`event-classification ${label.className}`}>{label.badge}</span>
                       </div>
+                      {label.note && <p className={styles.sectionNote}>{label.note}</p>}
                       <div className={styles.prose}>
                         {paragraphs(section.text).map((paragraph, index) => (
                           <p key={index}>{paragraph}</p>
@@ -157,8 +168,8 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
                 </div>
               )}
               <p className={styles.notice}>
-                AI-generated from the sourced material listed below. Sections marked as projection or speculation reach
-                beyond the sources.
+                AI-generated from the sourced material listed below. The decade and present sections are imagined
+                timelines told as if they happened.
               </p>
             </div>
             <div className={styles.meta}>

@@ -24,7 +24,14 @@ function withUnknownIdAndNumber(narration: Narration): Narration {
 function withNoteOnly(narration: Narration): Narration {
   return {
     ...narration,
-    sections: narration.sections.map((section, index) => (index === 1 ? { ...section, text: `Georgy Zhukov would likely have advised caution because ${LONG_TEXT.toLowerCase()}` } : section)),
+    sections: narration.sections.map((section, index) => (index === 1 ? { ...section, text: `Georgy Zhukov advised caution because ${LONG_TEXT.toLowerCase()}` } : section)),
+  };
+}
+
+function withBrokenFrame(narration: Narration): Narration {
+  return {
+    ...narration,
+    sections: narration.sections.map((section, index) => (index === 2 ? { ...section, text: `I imagine ${LONG_TEXT}` } : section)),
   };
 }
 
@@ -51,6 +58,18 @@ describe("produceNarration", () => {
     expect(result.attempts).toBe(1);
     expect(result.validation.flagged).toBe(false);
     expect(result.validation.flaggedTerms.some(({ severity }) => severity === "note")).toBe(true);
+  });
+
+  it("retries with plain advice when the narrator steps outside the timeline", async () => {
+    const requester = requesterReturning(JSON.stringify(withBrokenFrame(valid)), JSON.stringify(valid));
+    const result = await produceNarration(input, requester);
+    const retryMessages = requester.mock.calls[1][0];
+    const notice = retryMessages[retryMessages.length - 1].content;
+
+    expect(result.attempts).toBe(2);
+    expect(result.validation.flagged).toBe(false);
+    expect(notice).toContain("breaks-frame (i imagine)");
+    expect(notice).toContain("confident past tense");
   });
 
   it("retries once with the findings fed back and returns a clean second draft", async () => {

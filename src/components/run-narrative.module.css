@@ -79,6 +79,14 @@
   line-height: 1.2;
 }
 
+.sectionNote {
+  margin: -4px 0 0;
+  color: var(--muted, #999);
+  font-size: 0.85rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
 .prose {
   display: flex;
   flex-direction: column;

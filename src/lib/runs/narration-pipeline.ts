@@ -32,7 +32,7 @@ const ADVICE: Record<NarrationFindingRule, string> = {
   "invalid-structure": "Return exactly the required sections, in the required order.",
   "unknown-source-id": "List only IDs that were supplied.",
   "missing-citation": "Cite at least one supplied item from this section's own horizon in basedOn.",
-  "missing-hedging": "Use more hedged language such as would, might, could, and likely.",
+  "breaks-frame": "Tell the decade and present sections as someone who lived this timeline, reporting what happened in confident past tense. Remove hedging and phrases such as I imagine, it seems, might, would have, perhaps, and any mention that the timeline is alternate or speculative.",
   "too-short": "Write more: develop the supplied material in depth to reach the minimum length.",
   "missing-causal-link": "Show the chain of cause, naming what changed, with words such as because or as a result.",
   "unsupported-number": "Remove numbers and dates that are not in the supplied material.",

@@ -8,12 +8,12 @@ export function inputFor(basicChoiceId: string, runId = "run-1"): NarrationInput
 }
 
 const FILLER =
-  "This would likely have shaped events because the changed factors would have carried forward, and it might have gone differently in ways that could have mattered.";
+  "The Cabinet's choice carried forward because the changed factors kept shaping the years that followed, and the country felt the difference in its politics and in daily life.";
 
-/** About 156 words with hedging and a causal link, enough to satisfy every v4 length and wording rule. */
-export const LONG_TEXT = Array.from({ length: 6 }, () => FILLER).join(" ");
+/** About 140 words, told in plain past tense with a causal link, enough to satisfy every v5 length and wording rule. */
+export const LONG_TEXT = Array.from({ length: 5 }, () => FILLER).join(" ");
 
-/** A narration that satisfies every v4 rule for the given input. */
+/** A narration that satisfies every v5 rule for the given input. */
 export function buildValidNarration(input: NarrationInput): Narration {
   return {
     headline: "A different summer",

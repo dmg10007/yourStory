@@ -148,23 +148,24 @@ The aftermath section is strict:
 1. Use ONLY the supplied material. Do not add any person, organization, place, date, number, quotation, or event that is not in it. Spend your words on depth instead: explain what each supplied item meant, how it connected to the pivot, and how it would have felt to people living through it, without adding new facts.
 2. Never strengthen a claim. A documented-fact may be stated plainly. A direct-inference or plausible-projection needs hedged verbs such as likely, would, or might.
 
-The decade and present sections are grounded alt-history narrative:
-3. Write them as vivid alt-history prose. Follow the changed factors forward and describe how politics, alliances, institutions, and everyday life might have unfolded. Develop each supplied seed into a fuller picture instead of repeating it.
-4. Ground every development. Name the cause it grows from, in plain words, either the pivot or a supplied seed, and show the chain with words such as because, as a result, or which meant. Do not add a twist that does not follow from the changed factors.
-5. You may imagine plausible consequences and scenes. Do not invent named individuals, quotations, statistics, or dates that are not in the supplied material, and never state anything as established fact. Hedge throughout with words such as would, might, could, and likely. The present section must make plain that it is speculation about an alternate present, not established history.
+The decade and present sections are told from inside the changed timeline:
+3. Write them as someone who lived through this timeline and is reporting what happened. Use confident past tense for the decade section and, for the present section, past tense leading up to the world as it stands today. Never hedge, never say you imagine, suspect, or think, and never mention that the timeline is alternate, imagined, hypothetical, or speculative. The page already labels these sections, so the prose should simply tell it as lived history.
+4. Develop each supplied seed into a fuller picture of politics, alliances, institutions, and everyday life instead of repeating it.
+5. Ground every development. Show the cause it grows from, the pivot or a supplied seed, with words such as because, as a result, or which meant. Do not add a twist that does not follow from the changed factors.
+6. Do not invent named individuals, quotations, statistics, or dates that are not in the supplied material. Be concrete about consequences, not about specifics that were not supplied.
 
 For every section:
-6. List in basedOn the ID of every event or seed the section uses. Never list an ID that was not supplied. Each section must use at least one item from its own horizon; for aftermath that means an approved event or an aftermath seed.
-7. The voice changes tone only. Do not invent a narrator's name, a publication, a byline, or a dateline.
-8. Write the headline in sentence case, with capital letters only on the first word and proper nouns.
-9. Write three or four paragraphs per section, at least 120 words per section, as plain prose separated by blank lines. No markdown and no lists.`;
+7. List in basedOn the ID of every event or seed the section uses. Never list an ID that was not supplied. Each section must use at least one item from its own horizon; for aftermath that means an approved event or an aftermath seed.
+8. The voice changes tone only. Do not invent a narrator's name, a publication, a byline, or a dateline.
+9. Write the headline in sentence case, with capital letters only on the first word and proper nouns.
+10. Write three or four paragraphs per section, at least 120 words per section, as plain prose separated by blank lines. No markdown and no lists.`;
 
 const VOICE_GUIDES: Record<NarrationVoice, string> = {
   historian: "A historian's retrospective: measured and analytical, written from a distance of decades.",
   dispatch:
     "A newsroom dispatch: terse, factual, short sentences. In the decade and present sections, shift to a reflective feature-writer's tone.",
   memoir:
-    "A memoir: the reflective first-person voice of an unnamed observer. Express feelings and reflections only; never describe personal experiences or events that are not in the supplied material.",
+    "A memoir: the reflective first-person voice of an unnamed observer who lived through this timeline. Report and reflect on what changed; never describe personal experiences that involve named people or invented events.",
 };
 
 export function buildNarrationPrompt(input: NarrationInput): { system: string; user: string } {

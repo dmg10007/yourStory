@@ -5,8 +5,7 @@ import { LONG_TEXT, buildValidNarration, inputFor } from "./narration-fixture";
 
 const input = inputFor("war-cabinet-negotiates");
 
-const NO_HEDGE_TEXT = Array.from({ length: 8 }, () => "The Cabinet acted because the situation demanded it, and the effects spread across the following years.").join(" ");
-const NO_LINK_TEXT = Array.from({ length: 8 }, () => "This would likely have shaped events, and it might have gone differently in ways that could have mattered.").join(" ");
+const NO_LINK_TEXT = Array.from({ length: 6 }, () => "The Cabinet's choice carried forward and the country felt the difference in its politics and in daily life across the years.").join(" ");
 
 function findings(narration: Narration, subject = input) {
   return validateNarration(narration, subject).flaggedTerms;
@@ -18,7 +17,7 @@ function withSection(narration: Narration, index: number, changes: Partial<Narra
 
 describe("validateNarration", () => {
   it("passes a well-formed narration", () => {
-    expect(validateNarration(buildValidNarration(input), input)).toEqual({ flagged: false, flaggedTerms: [], validationVersion: "v4" });
+    expect(validateNarration(buildValidNarration(input), input)).toEqual({ flagged: false, flaggedTerms: [], validationVersion: "v5" });
   });
 
   it("flags sections that do not match the required horizons", () => {
@@ -41,20 +40,29 @@ describe("validateNarration", () => {
     expect(result).toContainEqual({ term: "decade", rule: "missing-citation", severity: "error" });
   });
 
-  it("flags unhedged decade and present sections", () => {
+  it("rejects the narrator musing in the decade section", () => {
     const valid = buildValidNarration(input);
-    const plain = withSection(withSection(valid, 1, { text: NO_HEDGE_TEXT }), 2, { text: NO_HEDGE_TEXT });
+    const result = findings(withSection(valid, 1, { text: `I imagine ${LONG_TEXT}` }));
 
-    expect(findings(plain).filter(({ rule }) => rule === "missing-hedging").map(({ term }) => term)).toEqual(["decade", "present"]);
+    expect(result).toContainEqual({ term: "i imagine", rule: "breaks-frame", severity: "error" });
   });
 
-  it("requires two hedges in the present section", () => {
+  it("rejects hedging and talk of an alternate timeline in the present section", () => {
     const valid = buildValidNarration(input);
-    const one = findings(withSection(valid, 2, { text: `${NO_HEDGE_TEXT} It might have happened.` }));
-    const two = findings(withSection(valid, 2, { text: `${NO_HEDGE_TEXT} It might have happened and could have lasted.` }));
+    const hedged = findings(withSection(valid, 2, { text: `${LONG_TEXT} It might have lasted for years.` }));
+    const framed = findings(withSection(valid, 2, { text: `${LONG_TEXT} In this alternate present the country stood apart.` }));
 
-    expect(one).toContainEqual({ term: "present", rule: "missing-hedging", severity: "error" });
-    expect(two.map(({ rule }) => rule)).not.toContain("missing-hedging");
+    expect(hedged).toContainEqual({ term: "might", rule: "breaks-frame", severity: "error" });
+    expect(framed).toContainEqual({ term: "alternate", rule: "breaks-frame", severity: "error" });
+  });
+
+  it("allows hedged wording in the strict aftermath section", () => {
+    const valid = buildValidNarration(input);
+    const draft = withSection(valid, 0, { text: `This would likely have shaped events because ${LONG_TEXT.toLowerCase()}` });
+    const result = validateNarration(draft, input);
+
+    expect(result.flaggedTerms.map(({ rule }) => rule)).not.toContain("breaks-frame");
+    expect(result.flagged).toBe(false);
   });
 
   it("flags a section that is too short", () => {
@@ -80,14 +88,14 @@ describe("validateNarration", () => {
 
   it("treats an invented name in the strict aftermath section as an error", () => {
     const valid = buildValidNarration(input);
-    const result = findings(withSection(valid, 0, { text: `Georgy Zhukov would likely have advised caution because ${LONG_TEXT.toLowerCase()}` }));
+    const result = findings(withSection(valid, 0, { text: `Georgy Zhukov advised caution because ${LONG_TEXT.toLowerCase()}` }));
 
     expect(result).toContainEqual({ term: "Georgy Zhukov", rule: "unsupported-name", severity: "error" });
   });
 
   it("records an unfamiliar name in a speculative section as a note that does not flag the draft", () => {
     const valid = buildValidNarration(input);
-    const draft = withSection(valid, 1, { text: `Georgy Zhukov would likely have advised caution because ${LONG_TEXT.toLowerCase()}` });
+    const draft = withSection(valid, 1, { text: `Georgy Zhukov advised caution because ${LONG_TEXT.toLowerCase()}` });
     const result = validateNarration(draft, input);
 
     expect(result.flaggedTerms).toContainEqual({ term: "Georgy Zhukov", rule: "unsupported-name", severity: "note" });

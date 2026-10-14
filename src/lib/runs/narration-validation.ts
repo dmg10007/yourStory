@@ -2,13 +2,13 @@ import type { NarrativeHorizon } from "@/domain/scenario";
 import { validateNarrative, type NarrativeValidationFinding } from "./narrative-validation";
 import { idsForHorizon, toSourceItems, type Narration, type NarrationInput } from "./narration";
 
-export const NARRATION_VALIDATION_VERSION = "v4";
+export const NARRATION_VALIDATION_VERSION = "v5";
 
 type StructureRule =
   | "invalid-structure"
   | "unknown-source-id"
   | "missing-citation"
-  | "missing-hedging"
+  | "breaks-frame"
   | "too-short"
   | "missing-causal-link";
 
@@ -27,19 +27,26 @@ export interface NarrationValidationResult {
   validationVersion: typeof NARRATION_VALIDATION_VERSION;
 }
 
-const HEDGE_PATTERN = /\b(might|may|could|would|likely|unlikely|perhaps|possibly|plausibly|probably|conceivably|speculat\w*)\b/gi;
+/**
+ * Phrases that step outside the changed timeline: hedging, the narrator musing, or any mention
+ * that the timeline is alternate or imagined. The decade and present sections are told as lived
+ * history, so none of these may appear there; the interface labels those sections instead.
+ */
+const BREAKS_FRAME_PATTERN = /\b(i (?:imagine|suspect|suppose|guess|wonder|believe|think)|it (?:seems|appears)|seems? (?:likely|plausible)|appears (?:likely|plausible)|looking like|might|may have|could have|would have|would likely|perhaps|possibly|probably|presumably|conceivably|likely|unlikely|speculat\w*|hypothetical\w*|imagined|counterfactual|alternate|in this (?:branch|timeline|scenario|version))\b/gi;
 
 const CAUSAL_PATTERN = /\b(because|since|as a result|result of|which meant|meant that|leading to|led to|so that|thereby|consequently|therefore|owing to|due to)\b/gi;
 
 /** Minimum lengths sit a little below the 120 words the prompt asks for, to leave slack. */
 export const MIN_WORDS: Record<NarrativeHorizon, number> = { aftermath: 100, decade: 110, present: 110 };
 
-const REQUIRED_HEDGES: Record<NarrativeHorizon, number> = { aftermath: 0, decade: 1, present: 2 };
-
 const REQUIRED_LINKS: Record<NarrativeHorizon, number> = { aftermath: 0, decade: 1, present: 1 };
 
 function countMatches(text: string, pattern: RegExp): number {
   return (text.match(pattern) ?? []).length;
+}
+
+function uniqueMatches(text: string, pattern: RegExp): string[] {
+  return [...new Set((text.match(pattern) ?? []).map((match) => match.toLowerCase()))];
 }
 
 function countWords(text: string): number {
@@ -51,10 +58,11 @@ export function countErrors(validation: NarrationValidationResult): number {
 }
 
 /**
- * v4 keeps the aftermath section strict (only supplied names, dates, and numbers) and lets the
- * decade and present sections read as grounded alt-history narrative: an unfamiliar name there is
- * recorded as a review note, while an invented number or date is still an error. Every section must
- * meet a minimum length, the speculative sections must show a causal chain and hedge, and every
+ * v5 keeps the aftermath section strict and sourced (only supplied names, dates, and numbers, with
+ * hedging allowed where the evidence is a projection). The decade and present sections are told
+ * from inside the changed timeline, so they must not hedge or step outside it; an unfamiliar name
+ * there is recorded as a review note, while an invented number or date is still an error. Every
+ * section must meet a minimum length, the speculative sections must show a causal chain, and every
  * cited ID must have been supplied. Like earlier versions it never decides historical truth.
  */
 export function validateNarration(narration: Narration, input: NarrationInput): NarrationValidationResult {
@@ -79,8 +87,11 @@ export function validateNarration(narration: Narration, input: NarrationInput): 
     if (!section.basedOn.some((id) => ownIds.has(id))) add(section.horizon, "missing-citation");
 
     if (countWords(section.text) < MIN_WORDS[section.horizon]) add(section.horizon, "too-short");
-    if (countMatches(section.text, HEDGE_PATTERN) < REQUIRED_HEDGES[section.horizon]) add(section.horizon, "missing-hedging");
     if (countMatches(section.text, CAUSAL_PATTERN) < REQUIRED_LINKS[section.horizon]) add(section.horizon, "missing-causal-link");
+
+    if (section.horizon !== "aftermath") {
+      uniqueMatches(section.text, BREAKS_FRAME_PATTERN).forEach((phrase) => add(phrase, "breaks-frame"));
+    }
   });
 
   const sourceItems = toSourceItems(input);
