@@ -1,5 +1,5 @@
 import { scenarioSchema, type ScenarioDefinition } from "@/domain/scenario";
-import { cabinetNegotiatesChoice, dunkirkPivotSources, noHaltOrderPivot, reducedEvacuationPivot } from "./dunkirk-1940-pivots";
+import { cabinetNegotiatesChoice, dunkirkPivotSources, noHaltOrderPivot, reducedEvacuationPivot } from "./dunkirk-1940-expanded-pivots";
 
 export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
   id: "dunkirk-1940",
@@ -7,7 +7,7 @@ export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
   eventPackId: "wwii-europe",
   status: "reviewed",
   version: "0.2.0",
-  sourceLibraryVersion: "wwii-europe-reviewed-3",
+  sourceLibraryVersion: "wwii-europe-reviewed-4",
   divergence: {
     date: "1940-05-24",
     historicalEvent: "The German halt order pauses armored movement toward the Dunkirk perimeter.",
