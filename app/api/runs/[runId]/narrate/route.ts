@@ -3,6 +3,7 @@ import { SimulationValidationError } from "@/domain/simulation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { replayRun, getScenario } from "@/lib/runs/replay";
 import { buildNarrationInput, collectSources, renderNarrationText } from "@/lib/runs/narration";
+import { qualityFromStored } from "@/lib/runs/narration-quality";
 import { isNarrationVoice } from "@/lib/runs/narration-voices";
 import { NarrationGenerationError, produceNarration } from "@/lib/runs/narration-pipeline";
 import { DEFAULT_NARRATION_MODEL, GroqRequestError, createGroqRequester } from "@/lib/runs/groq";
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!regenerate) {
       const { data: cached, error: cacheError } = await supabase
         .from("narratives")
-        .select("content, events, model_id, created_at, voice, headline, sections, seeds")
+        .select("content, events, model_id, created_at, voice, headline, sections, seeds, flagged, flagged_terms, validation_version")
         .eq("run_id", runId)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           sources: collectSources(scenario, events, seeds),
           modelId: cached.model_id,
           generatedAt: cached.created_at,
+          validation: qualityFromStored(cached),
           cached: true,
         });
       }
@@ -75,6 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         events: [],
         seeds: [],
         sources: [],
+        validation: null,
         cached: false,
       });
     }
@@ -115,6 +118,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       sources: collectSources(scenario, input.events, input.seeds),
       modelId: model,
       generatedAt: saved?.created_at ?? new Date().toISOString(),
+      validation: result.validation,
       cached: false,
     });
   } catch (caught) {

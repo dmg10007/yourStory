@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { narrationVoiceLabels, narrationVoices, type NarrationVoice } from "@/lib/runs/narration-voices";
+import type { NarrativeQuality } from "@/lib/runs/narration-quality";
+import { NarrativeQualityNotice } from "./narrative-quality-notice";
 import styles from "./run-narrative.module.css";
 
 type Horizon = "aftermath" | "decade" | "present";
@@ -47,6 +49,7 @@ interface NarrativeResult {
   modelId?: string;
   generatedAt?: string;
   cached: boolean;
+  validation?: NarrativeQuality | null;
 }
 
 const HORIZON_LABELS: Record<Horizon, { title: string; badge: string; className: Classification; note: string | null }> = {
@@ -140,6 +143,7 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
         {error && <p role="alert">{error}</p>}
         {result && hasNarrative && (
           <>
+            <NarrativeQualityNotice validation={result.validation} onRegenerate={() => void fetchNarrative(true)} disabled={isBusy} />
             <div className={styles.story}>
               {result.headline && <h3 className={styles.headline}>{result.headline}</h3>}
               {sections.length > 0 ? (

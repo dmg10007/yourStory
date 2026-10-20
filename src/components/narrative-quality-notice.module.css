@@ -1,0 +1,15 @@
+.notice {
+  border: 1px solid #bd9b59;
+  border-radius: 14px;
+  padding: 18px 22px;
+  max-width: 860px;
+  background: rgba(189, 155, 89, 0.08);
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+.notice h4 { margin: 0 0 10px; font-size: 1.1rem; }
+.notice p { line-height: 1.6; margin: 10px 0; }
+.notice ul { margin: 10px 0; padding-left: 22px; }
+.notice li { line-height: 1.6; }
+.notice summary { cursor: pointer; }
+.version { font-size: 0.85rem; }
