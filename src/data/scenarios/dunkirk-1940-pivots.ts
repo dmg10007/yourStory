@@ -113,6 +113,23 @@ export const dunkirkPivotSources = [
     ],
     rightsNote: "Community-maintained reference; verify against primary sources before republication.",
     reviewStatus: "reviewed"
+  },
+  {
+    id: "src-deighton-blitzkrieg-001",
+    title: "Blitzkrieg: From the Rise of Hitler to the Fall of Dunkirk",
+    author: "Len Deighton",
+    kind: "secondary",
+    version: "HarperCollins edition, 1979",
+    publishedYear: 1979,
+    sourceUrl: "https://www.harpercollins.com/products/blitzkrieg-len-deighton",
+    locator: "Chapters on the Arras counterattack and the Dunkirk perimeter",
+    claimsSupported: [
+      "Luftwaffe bombing priority on harbor moles",
+      "Stuka operations over Dunkirk",
+      "German armor logistics and replenishment constraints"
+    ],
+    rightsNote: "Published historical monograph; excerpts require fair-use review.",
+    reviewStatus: "reviewed"
   }
 ];
 
@@ -522,6 +539,365 @@ export const cabinetNegotiatesChoice = {
         "src-grimsley-peace-001"
       ],
       causalFactorIds: []
+    }
+  ]
+};
+
+export const expandedEvacuationPivot = {
+  plausibility: {
+    minimalRewrite: "Admiral Bertram Ramsay coordinates with the French Admiralty forty-eight hours earlier to requisition French merchant coasters and channel ferries, while calmer sea states along Malo-les-Bains permit night-time shallow-draft pier embarkation, lifting over 420,000 personnel including the French First Army rearguard.",
+    evidenceIds: [
+      "src-dunkirk-001",
+      "src-armistice-001"
+    ]
+  },
+  seedSelection: {
+    aftermath: 2,
+    decade: 2,
+    present: 1
+  },
+  consequenceSeeds: [
+    {
+      id: "ee-a1",
+      horizon: "aftermath",
+      title: "Preserved French field divisions",
+      summary: "Evacuating eighty thousand additional trained French regulars preserves core divisions that form the nucleus of a reconstituted Free French army in Britain and North Africa.",
+      classification: "plausible-projection",
+      basis: "Churchill emphasized that French soldiers brought to Britain formed the initial cadres for Charles de Gaulle.",
+      evidenceIds: [
+        "src-dunkirk-001",
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "allied-trained-force",
+        "french-resistance-continuity"
+      ]
+    },
+    {
+      id: "ee-a2",
+      horizon: "aftermath",
+      title: "Heightened British defensive readiness",
+      summary: "Returning nearly the entire British Expeditionary Force with key artillery cadres reinforces Home Defense divisions ahead of the anticipated invasion threat.",
+      classification: "plausible-projection",
+      basis: "The return of trained regulars was crucial for re-equipping the home army.",
+      evidenceIds: [
+        "src-dunkirk-001"
+      ],
+      causalFactorIds: [
+        "allied-trained-force",
+        "british-political-resolve"
+      ]
+    },
+    {
+      id: "ee-a3",
+      horizon: "aftermath",
+      title: "Allied solidarity solidified",
+      summary: "The successful mass evacuation of French combat troops alongside British soldiers dampens anti-British sentiment across metropolitan France following the fall of Paris.",
+      classification: "plausible-projection",
+      basis: "Historical recriminations over evacuation priority strained Anglo-French relations.",
+      evidenceIds: [
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity",
+        "british-political-resolve"
+      ]
+    },
+    {
+      id: "ee-d1",
+      horizon: "decade",
+      title: "Stronger early North African counter-offensive",
+      summary: "With trained French imperial forces aligned with London, Allied operations in North Africa achieve rapid control of Vichy-held territories in 1941.",
+      classification: "plausible-projection",
+      basis: "Imperial French territories provided strategic staging points for Mediterranean campaigns.",
+      evidenceIds: [
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity",
+        "allied-trained-force"
+      ]
+    },
+    {
+      id: "ee-d2",
+      horizon: "decade",
+      title: "Accelerated European invasion timetable",
+      summary: "An expanded pool of veteran officers and non-commissioned officers accelerates British and Commonwealth divisional readiness, bringing forward the timetable for cross-Channel raiding and liberation plans.",
+      classification: "plausible-projection",
+      basis: "Veteran manpower shortages constrained British expansion through 1942.",
+      evidenceIds: [
+        "src-dunkirk-001"
+      ],
+      causalFactorIds: [
+        "allied-trained-force"
+      ]
+    },
+    {
+      id: "ee-p1",
+      horizon: "present",
+      title: "Shared founding memory of liberation",
+      summary: "Post-war French and British integration builds on the shared symbol of mutual rescue at Dunkirk, fostering deeper early post-war military and diplomatic confederation.",
+      classification: "highly-speculative",
+      basis: "Dunkirk's cultural resonance profoundly shaped post-war British and European security discourse.",
+      evidenceIds: [
+        "src-dunkirk-001",
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "british-political-resolve"
+      ]
+    }
+  ]
+};
+
+export const luftwaffeMoleBombardmentChoice = {
+  id: "luftwaffe-mole-bombardment",
+  label: "Luftwaffe concentrated mole bombardment",
+  description: "German Stukas prioritize destroying the East Mole and harbor piers, severing deep-draft berths.",
+  interventionSummary: "The Luftwaffe concentrates dive-bombing on Dunkirk's harbor moles rather than dispersed beach targets, shutting down destroyer evacuations.",
+  narrativeEvents: [
+    {
+      id: "evt-mole-destroyed",
+      date: "1940-05-27",
+      title: "Destruction of the East Mole",
+      summary: "Concentrated Stuka dive-bombing fractures the wooden planking and concrete pilings of Dunkirk's East Mole, eliminating the pier that handled over two hundred thousand evacuees and forcing all rescue attempts onto shallow open beaches under continuous artillery fire.",
+      classification: "plausible-projection" as const,
+      evidenceIds: [
+        "src-dunkirk-001",
+        "src-deighton-blitzkrieg-001"
+      ],
+      causalFactorIds: [
+        "evacuation-capacity",
+        "allied-trained-force"
+      ]
+    }
+  ],
+  plausibility: {
+    minimalRewrite: "Reichsmarschall Hermann Goering orders Luftflotte 2 and 3 dive-bombers to focus strictly on destroying the concrete pilings of Dunkirk's East Mole and harbor breakwaters rather than strafing dispersed troops on sand dunes, eliminating deep-draft berths.",
+    evidenceIds: [
+      "src-dunkirk-001",
+      "src-deighton-blitzkrieg-001"
+    ]
+  },
+  seedSelection: {
+    aftermath: 2,
+    decade: 2,
+    present: 1
+  },
+  consequenceSeeds: [
+    {
+      id: "lm-a1",
+      horizon: "aftermath",
+      title: "Catastrophic embarkation bottleneck",
+      summary: "Denied deep-water piers, Royal Navy destroyers cannot dock, reducing daily evacuation rates by more than seventy percent.",
+      classification: "plausible-projection",
+      basis: "Historically over two-thirds of all evacuees boarded from the East Mole.",
+      evidenceIds: [
+        "src-dunkirk-001"
+      ],
+      causalFactorIds: [
+        "evacuation-capacity"
+      ]
+    },
+    {
+      id: "lm-a2",
+      horizon: "aftermath",
+      title: "Surrender of British rear divisions",
+      summary: "As German armor closes the perimeter, ammunition exhaustion compels over one hundred and fifty thousand Allied soldiers to surrender on the beaches.",
+      classification: "plausible-projection",
+      basis: "Churchill feared that loss of the mole would leave the army trapped with days of ammunition remaining.",
+      evidenceIds: [
+        "src-dunkirk-001",
+        "src-deighton-blitzkrieg-001"
+      ],
+      causalFactorIds: [
+        "allied-trained-force",
+        "evacuation-capacity"
+      ]
+    },
+    {
+      id: "lm-a3",
+      horizon: "aftermath",
+      title: "Political shockwave in London",
+      summary: "News of massive troop captures triggers immediate censure motions against Churchill's nascent coalition government.",
+      classification: "plausible-projection",
+      basis: "The War Cabinet debates reflected acute anxiety over parliamentary reaction to catastrophic troop losses.",
+      evidenceIds: [
+        "src-war-cabinet-001"
+      ],
+      causalFactorIds: [
+        "british-political-resolve"
+      ]
+    },
+    {
+      id: "lm-d1",
+      horizon: "decade",
+      title: "Home defense emergency mobilization",
+      summary: "Britain must deploy untrained territorial recruits and emergency local defense volunteers to coastal positions, leaving Commonwealth forces critically understrength in Egypt and Singapore.",
+      classification: "plausible-projection",
+      basis: "The loss of the professional regular army would have crippled overseas garrisons.",
+      evidenceIds: [
+        "src-dunkirk-001"
+      ],
+      causalFactorIds: [
+        "allied-trained-force",
+        "british-political-resolve"
+      ]
+    },
+    {
+      id: "lm-d2",
+      horizon: "decade",
+      title: "Delayed Mediterranean campaigns",
+      summary: "Lacking veteran divisions, British counter-offensives in Libya and East Africa are delayed by eighteen months, enabling Axis consolidation of North African oil routes.",
+      classification: "plausible-projection",
+      basis: "Middle Eastern theater operations depended on units evacuated from France.",
+      evidenceIds: [
+        "src-dunkirk-001"
+      ],
+      causalFactorIds: [
+        "allied-trained-force"
+      ]
+    },
+    {
+      id: "lm-p1",
+      horizon: "present",
+      title: "A traumatic military legacy",
+      summary: "The catastrophic loss of the expeditionary army establishes a doctrine of insular continental detachment in post-war British strategic thought.",
+      classification: "highly-speculative",
+      basis: "Interwar British military policy had long resisted continental commitments; catastrophe would have hardened that view.",
+      evidenceIds: [
+        "src-dunkirk-001",
+        "src-war-cabinet-001"
+      ],
+      causalFactorIds: [
+        "british-political-resolve"
+      ]
+    }
+  ]
+};
+
+export const frenchBretonRedoubtChoice = {
+  id: "french-breton-redoubt",
+  label: "French Breton Redoubt and imperial resistance",
+  description: "Premier Paul Reynaud overrides defeatist ministers, ordering a retreat into the Brittany redoubt and moving the government to North Africa.",
+  interventionSummary: "France refuses an armistice, fighting from a fortified Brittany peninsula while transferring fleet units and government institutions to Algiers.",
+  narrativeEvents: [
+    {
+      id: "evt-breton-defense-order",
+      date: "1940-06-13",
+      title: "The Imperial Resistance Proclamation",
+      summary: "From Tours, French Premier Paul Reynaud issues the Imperial Proclamation, declaring that France will fight on from its colonial territories and establishing the Brittany peninsula redoubt to hold German panzer corps at bay while naval convoys transfer equipment to North Africa.",
+      classification: "plausible-projection" as const,
+      evidenceIds: [
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity",
+        "british-political-resolve"
+      ]
+    }
+  ],
+  plausibility: {
+    minimalRewrite: "French Premier Paul Reynaud rejects Marshal Pétain's counsel on 13 June 1940 and orders General Charles de Gaulle to organize a fighting retreat into the Brittany peninsula redoubt, while the French fleet and government relocate to Algiers to continue the war from the empire.",
+    evidenceIds: [
+      "src-armistice-001",
+      "src-dunkirk-001"
+    ]
+  },
+  seedSelection: {
+    aftermath: 2,
+    decade: 2,
+    present: 1
+  },
+  consequenceSeeds: [
+    {
+      id: "br-a1",
+      horizon: "aftermath",
+      title: "French fleet remains in Allied service",
+      summary: "With the French government relocated to Algiers, the French Navy joins the Royal Navy in Alexandria and Gibraltar, eliminating the need for the tragic British attack at Mers-el-Kébir.",
+      classification: "plausible-projection",
+      basis: "The armistice terms created the naval crisis that led directly to Operation Catapult at Mers-el-Kébir.",
+      evidenceIds: [
+        "src-armistice-001",
+        "src-dunkirk-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity",
+        "british-political-resolve"
+      ]
+    },
+    {
+      id: "br-a2",
+      horizon: "aftermath",
+      title: "North African front mobilized immediately",
+      summary: "French North African divisions and air bases remain actively belligerent, closing the Mediterranean to Axis supply shipping heading toward Italian Libya.",
+      classification: "plausible-projection",
+      basis: "Vichy neutrality historically shielded Axis supply lanes across the central Mediterranean.",
+      evidenceIds: [
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity",
+        "allied-trained-force"
+      ]
+    },
+    {
+      id: "br-a3",
+      horizon: "aftermath",
+      title: "German occupation of all metropolitan France",
+      summary: "In response to colonial resistance, the German military occupies southern France and the Mediterranean coast immediately, stretching German occupation security battalions across western Europe.",
+      classification: "plausible-projection",
+      basis: "Case Anton demonstrated German willingness to occupy the southern zone when resistance threatened.",
+      evidenceIds: [
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity"
+      ]
+    },
+    {
+      id: "br-d1",
+      horizon: "decade",
+      title: "No Vichy collaborationist regime",
+      summary: "Without Pétain's Vichy government, the moral and political collaboration apparatus never forms, preserving unified French republican legitimacy throughout the war.",
+      classification: "plausible-projection",
+      basis: "The legal continuity of the Vichy state divided French loyalties throughout the war.",
+      evidenceIds: [
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity"
+      ]
+    },
+    {
+      id: "br-d2",
+      horizon: "decade",
+      title: "Early Mediterranean victory",
+      summary: "Combined Anglo-French naval and ground superiority in the Mediterranean forces an early collapse of Italian forces in Libya by late 1941.",
+      classification: "plausible-projection",
+      basis: "Rommel's Afrika Korps required secure sea routes that active French North African bases would have interdicted.",
+      evidenceIds: [
+        "src-armistice-001",
+        "src-dunkirk-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity",
+        "allied-trained-force"
+      ]
+    },
+    {
+      id: "br-p1",
+      horizon: "present",
+      title: "An unbroken republican continuity",
+      summary: "Post-war France avoids the painful purge and constitutional fractures of the post-Vichy era, leading to earlier European political consolidation under a confident Fourth Republic.",
+      classification: "highly-speculative",
+      basis: "The legacy of collaboration deeply marked post-war French politics and legal institutions.",
+      evidenceIds: [
+        "src-armistice-001"
+      ],
+      causalFactorIds: [
+        "french-resistance-continuity"
+      ]
     }
   ]
 };

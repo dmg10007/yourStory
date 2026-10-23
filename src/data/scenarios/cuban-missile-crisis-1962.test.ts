@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { scenarioSchema } from "@/domain/scenario";
 import { SimulationValidationError } from "@/domain/simulation";
+import { buildMoment } from "@/lib/play/moments";
 import { deriveEvents } from "@/lib/runs/narrative";
 import { initializeSimulation, resolveDecision } from "@/lib/simulation-engine";
 import { cubanMissileCrisis1962 } from "./cuban-missile-crisis-1962";
@@ -11,6 +12,8 @@ const allEvents = [
   ...cubanMissileCrisis1962.basicChoices.flatMap(({ narrativeEvents }) => narrativeEvents),
   ...cubanMissileCrisis1962.decisionForks.flatMap(({ choices }) => choices.flatMap(({ narrativeEvents }) => narrativeEvents)),
 ];
+
+const allSeeds = cubanMissileCrisis1962.basicChoices.flatMap(({ consequenceSeeds }) => consequenceSeeds);
 
 describe("cubanMissileCrisis1962", () => {
   it("conforms to the scenario contract and stays in draft until reviewed", () => {
@@ -34,6 +37,36 @@ describe("cubanMissileCrisis1962", () => {
       "delayed-discovery": ["plausible-projection"],
       "early-discovery": ["plausible-projection"],
       "preemptive-airstrike": ["plausible-projection"],
+      "b59-nuclear-torpedo": ["plausible-projection"],
+      "un-emergency-summit": ["plausible-projection"],
+      "full-scale-invasion-oplan": ["plausible-projection"],
+    });
+  });
+
+  it("builds playable moment with all six counterfactual pivots", () => {
+    const moment = buildMoment(cubanMissileCrisis1962);
+    expect(moment.scenarioId).toBe("cuban-missile-crisis-1962");
+    expect(moment.pivots.length).toBe(6);
+    const pivotIds = moment.pivots.map((p) => p.id);
+    expect(pivotIds).toEqual([
+      "delayed-discovery",
+      "early-discovery",
+      "preemptive-airstrike",
+      "b59-nuclear-torpedo",
+      "un-emergency-summit",
+      "full-scale-invasion-oplan",
+    ]);
+  });
+
+  it("ensures consequence seed classifications decay properly across horizons", () => {
+    allSeeds.forEach((seed) => {
+      if (seed.horizon === "aftermath") {
+        expect(["direct-inference", "plausible-projection"]).toContain(seed.classification);
+      } else if (seed.horizon === "decade") {
+        expect(["plausible-projection", "highly-speculative"]).toContain(seed.classification);
+      } else if (seed.horizon === "present") {
+        expect(seed.classification).toBe("highly-speculative");
+      }
     });
   });
 

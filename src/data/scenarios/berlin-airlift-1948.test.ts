@@ -40,13 +40,19 @@ describe("berlinAirlift1948", () => {
     });
   });
 
-  it("builds playable moment with both counterfactual pivots", () => {
+  it("builds playable moment with all six counterfactual pivots", () => {
     const moment = buildMoment(berlinAirlift1948);
     expect(moment.scenarioId).toBe("berlin-airlift-1948");
-    expect(moment.pivots.length).toBe(2);
+    expect(moment.pivots.length).toBe(6);
     const pivotIds = moment.pivots.map((p) => p.id);
-    expect(pivotIds).toContain("armored-convoy-breakthrough");
-    expect(pivotIds).toContain("negotiated-berlin-concession");
+    expect(pivotIds).toEqual([
+      "armored-convoy-breakthrough",
+      "negotiated-berlin-concession",
+      "spree-canal-flotilla",
+      "four-power-currency-compromise",
+      "atomic-b29-deployment",
+      "tegel-airfield-rapid-build",
+    ]);
   });
 
   it("applies authored causal factor deltas upon simulation and fork resolution", () => {

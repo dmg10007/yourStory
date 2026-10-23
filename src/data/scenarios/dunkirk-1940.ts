@@ -1,5 +1,13 @@
 import { scenarioSchema, type ScenarioDefinition } from "@/domain/scenario";
-import { cabinetNegotiatesChoice, dunkirkPivotSources, noHaltOrderPivot, reducedEvacuationPivot } from "./dunkirk-1940-expanded-pivots";
+import {
+  cabinetNegotiatesChoice,
+  dunkirkPivotSources,
+  expandedEvacuationPivot,
+  frenchBretonRedoubtChoice,
+  luftwaffeMoleBombardmentChoice,
+  noHaltOrderPivot,
+  reducedEvacuationPivot,
+} from "./dunkirk-1940-expanded-pivots";
 
 export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
   id: "dunkirk-1940",
@@ -120,6 +128,7 @@ export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
         evidenceIds: ["src-dunkirk-001"],
         causalFactorIds: ["evacuation-capacity", "allied-trained-force"],
       }],
+      ...expandedEvacuationPivot,
     },
     {
       id: "no-halt-order",
@@ -138,6 +147,8 @@ export const dunkirk1940: ScenarioDefinition = scenarioSchema.parse({
       ...noHaltOrderPivot,
     },
     cabinetNegotiatesChoice,
+    luftwaffeMoleBombardmentChoice,
+    frenchBretonRedoubtChoice,
   ],
   advancedVariables: [
     { id: "evacuation-capacity", category: "military", label: "Evacuation capacity", baseline: 0, minimum: -2, maximum: 2, step: 1, affectedFactorIds: ["evacuation-capacity", "allied-trained-force"] },

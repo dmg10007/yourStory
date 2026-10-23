@@ -5,7 +5,12 @@ import {
   reducedEvacuationPivot as originalReduced,
 } from "./dunkirk-1940-pivots";
 
-export { dunkirkPivotSources } from "./dunkirk-1940-pivots";
+export {
+  dunkirkPivotSources,
+  expandedEvacuationPivot,
+  luftwaffeMoleBombardmentChoice,
+  frenchBretonRedoubtChoice,
+} from "./dunkirk-1940-pivots";
 
 function seed(
   id: string,

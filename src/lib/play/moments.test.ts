@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { dunkirk1940 } from "@/data/scenarios/dunkirk-1940";
 import { buildMoment, listPlayableMoments } from "./moments";
 
-const PIVOT_IDS = ["reduced-evacuation", "no-halt-order", "war-cabinet-negotiates"];
+const PIVOT_IDS = [
+  "reduced-evacuation",
+  "no-halt-order",
+  "war-cabinet-negotiates",
+  "expanded-evacuation",
+  "luftwaffe-mole-bombardment",
+  "french-breton-redoubt",
+];
 
 describe("play moments", () => {
   it("offers only the seeded pivots, not the baseline or unseeded variants", () => {

@@ -40,13 +40,19 @@ describe("midway1942", () => {
     });
   });
 
-  it("builds playable moment with both counterfactual pivots", () => {
+  it("builds playable moment with all six counterfactual pivots", () => {
     const moment = buildMoment(midway1942);
     expect(moment.scenarioId).toBe("midway-1942");
-    expect(moment.pivots.length).toBe(2);
+    expect(moment.pivots.length).toBe(6);
     const pivotIds = moment.pivots.map((p) => p.id);
-    expect(pivotIds).toContain("early-japanese-reconnaissance");
-    expect(pivotIds).toContain("retained-combat-air-patrol");
+    expect(pivotIds).toEqual([
+      "early-japanese-reconnaissance",
+      "retained-combat-air-patrol",
+      "immediate-spruance-strike",
+      "fletcher-concentrated-fleet",
+      "yamamoto-battleship-advance",
+      "midway-island-radar-warning",
+    ]);
   });
 
   it("applies authored causal factor deltas upon simulation and fork resolution", () => {
