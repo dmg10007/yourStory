@@ -32,6 +32,8 @@ describe("cubanMissileCrisis1962", () => {
     expect(basicClassifications).toEqual({
       "historical-discovery": ["documented-fact"],
       "delayed-discovery": ["plausible-projection"],
+      "early-discovery": ["plausible-projection"],
+      "preemptive-airstrike": ["plausible-projection"],
     });
   });
 

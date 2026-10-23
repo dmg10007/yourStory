@@ -18,8 +18,12 @@ export function getRunHistory(): LocalRunEntry[] {
 
 export function addRunToHistory(entry: LocalRunEntry) {
   if (typeof window === "undefined") return;
-  const history = getRunHistory();
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify([entry, ...history].slice(0, 50)));
+  try {
+    const history = getRunHistory();
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([entry, ...history].slice(0, 50)));
+  } catch {
+    // Gracefully ignore storage restrictions (e.g. private mode or quota limit)
+  }
 }
 
 export function removeRunFromHistory(runId: string) {

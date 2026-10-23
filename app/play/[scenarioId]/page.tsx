@@ -16,7 +16,9 @@ export default async function PlayPage({ params }: { params: Promise<{ scenarioI
     <main className="shell">
       <nav className="nav">
         <Link className="brand" href="/">YOUR STORY</Link>
-        <span className="nav-status">Play</span>
+        <Link href="/" style={{ color: "var(--muted)", fontSize: "0.88rem" }}>
+          &larr; All Turning Points
+        </Link>
       </nav>
       <section className="hero">
         <p className="eyebrow">{moment.date}</p>

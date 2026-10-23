@@ -1,12 +1,53 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { replayRun } from "@/lib/runs/replay";
 import { RunNarrative } from "@/components/run-narrative";
+import { FactorGauges } from "@/components/factor-gauges";
 import { SimulationValidationError } from "@/domain/simulation";
 import type { DeterministicSimulationState, SimulationTraceEntry } from "@/domain/simulation";
-import { dunkirk1940 } from "@/data/scenarios/dunkirk-1940";
+import { scenariosById } from "@/data/scenarios";
 
-const scenarioLookup = { "dunkirk-1940": dunkirk1940 };
+export async function generateMetadata({ params }: { params: Promise<{ runId: string }> }): Promise<Metadata> {
+  const { runId } = await params;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: run } = await supabase.from("runs").select("scenario_id, basic_choice_id").eq("id", runId).maybeSingle();
+
+    if (!run) {
+      return {
+        title: "Simulation Run | Your Story",
+        description: "Alternate history simulation run on Your Story.",
+      };
+    }
+
+    const scenario = scenariosById.get(run.scenario_id);
+    const choice = scenario?.basicChoices.find((c) => c.id === run.basic_choice_id);
+
+    const title = choice ? `${choice.label} — ${scenario?.title ?? "Your Story"}` : "Alternate History Simulation | Your Story";
+    const description = choice?.interventionSummary || "Explore this alternate history timeline on Your Story.";
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: "article",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
+    };
+  } catch {
+    return {
+      title: "Alternate History Run | Your Story",
+      description: "Explore this alternate history timeline on Your Story.",
+    };
+  }
+}
 
 function describeTraceEntry(entry: SimulationTraceEntry): string | null {
   switch (entry.type) {
@@ -58,9 +99,15 @@ export default async function RunReplayPage({ params }: { params: Promise<{ runI
     </main>;
   }
 
-  const scenario = scenarioLookup[state.scenarioId as keyof typeof scenarioLookup];
+  const scenario = scenariosById.get(state.scenarioId);
   const basicChoice = scenario?.basicChoices.find((choice) => choice.id === state.selectedBasicChoiceId);
   const resolvedForks = scenario?.decisionForks.filter((fork) => state.resolvedForkIds.includes(fork.id)) ?? [];
+
+  const factorItems = (scenario?.causalFactors ?? Object.keys(state.causalFactorValues).map((id) => ({ id, label: id }))).map((factor) => ({
+    id: factor.id,
+    label: factor.label,
+    value: state.causalFactorValues[factor.id] ?? 0,
+  }));
 
   return <main className="shell run-page">
     <Link className="run-back-nav" href="/">&larr; Back to Your Story</Link>
@@ -77,17 +124,8 @@ export default async function RunReplayPage({ params }: { params: Promise<{ runI
     </div>
 
     <section className="run-section">
-      <h2>Causal factors</h2>
-      <div className="factor-grid">
-        {(scenario?.causalFactors ?? Object.keys(state.causalFactorValues).map((id) => ({ id, label: id }))).map((factor) => {
-          const value = state.causalFactorValues[factor.id];
-          const valueClass = value > 0 ? "positive" : value < 0 ? "negative" : "";
-          return <div className="factor-card" key={factor.id}>
-            <p className="factor-label">{factor.label}</p>
-            <p className={`factor-value ${valueClass}`}>{value > 0 ? "+" : ""}{value}</p>
-          </div>;
-        })}
-      </div>
+      <h2>Causal factor shifts</h2>
+      <FactorGauges factors={factorItems} />
     </section>
 
     <section className="run-section">
@@ -103,7 +141,16 @@ export default async function RunReplayPage({ params }: { params: Promise<{ runI
       )}
     </section>
 
-    <RunNarrative runId={runId} />
+    <RunNarrative
+      runId={runId}
+      autoStart
+      scenarioTitle={scenario?.title}
+      scenarioEra={scenario?.divergence.date}
+      choiceLabel={basicChoice?.label}
+      choiceSummary={basicChoice?.interventionSummary}
+      factorValues={state.causalFactorValues}
+      resolvedForkCount={state.resolvedForkIds.length}
+    />
 
     <section className="run-section">
       <h2>Audit trace</h2>

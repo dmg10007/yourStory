@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { DunkirkScenarioRunner } from "@/components/dunkirk-scenario-runner";
 import { eventPacks } from "@/data/event-packs";
 import { scenarios } from "@/data/scenarios";
 import { listPlayableMoments } from "@/lib/play/moments";
@@ -11,36 +10,73 @@ export default function HomePage() {
     <main className="shell">
       <nav className="nav">
         <a className="brand" href="#top">YOUR STORY</a>
-        <span className="nav-status">Historical simulation platform</span>
+        <span className="nav-status">Alternate history sandbox</span>
       </nav>
+
       <section className="hero" id="top">
-        <p className="eyebrow">History, rewritten with care</p>
-        <h1>Change one decision.<br />Follow the consequences.</h1>
-        <p className="lede">Pick a turning point in history, change one thing, and read how it might have changed the world, all the way to today. Every claim is tied to sources, and the speculation is labeled.</p>
-        <a className="button" href="#play">Play a moment</a>
+        <p className="eyebrow">⚡ Strategic Time-Fracture Sandbox</p>
+        <h1>Change one decision.<br />Fracture history.</h1>
+        <p className="lede">
+          Step into human history&apos;s greatest near-miss turning points. Change one crucial call, bend the timeline forward, and explore the alternate world that could have been &mdash; fully grounded in historical sources.
+        </p>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginTop: "1.5rem" }}>
+          <a className="button" href="#play">Choose a Turning Point</a>
+          {moments.length > 0 && (
+            <Link
+              className="button"
+              style={{ background: "rgba(240, 228, 200, 0.08)", border: "1px solid var(--line)" }}
+              href={`/play/${moments[0].scenarioId}`}
+            >
+              🎲 Quick Play: {moments[0].title.split(":")[0]}
+            </Link>
+          )}
+        </div>
       </section>
+
       <section className="event-section" id="play">
-        <p className="eyebrow">Play</p>
-        <h2>Pick a moment. Change one thing.</h2>
+        <p className="eyebrow">Playable Turning Points</p>
+        <h2>Pick a moment. Fracture the timeline.</h2>
         <div className="event-grid">
           {moments.map((moment) => (
-            <article className="event-card" key={moment.scenarioId}>
-              <p className="event-era">{moment.date} - {moment.pivots.length} ways to change it</p>
-              <h3>{moment.title}</h3>
-              <p>{moment.hook}</p>
-              <Link className="button" href={`/play/${moment.scenarioId}`}>Play</Link>
+            <article className="event-card" key={moment.scenarioId} style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div>
+                <p className="event-era">
+                  <span>📅 {moment.date}</span> &bull; <span>{moment.pivots.length} alternate paths</span>
+                </p>
+                <h3>{moment.title}</h3>
+                <p>{moment.hook}</p>
+              </div>
+              <div style={{ marginTop: "1.5rem" }}>
+                <Link className="button" href={`/play/${moment.scenarioId}`}>
+                  Launch Simulation &rarr;
+                </Link>
+              </div>
             </article>
           ))}
         </div>
       </section>
+
       <section className="principles">
-        <article><span>01</span><h2>Guided divergence</h2><p>Curated historical decision points before unrestricted inputs.</p></article>
-        <article><span>02</span><h2>Visible causality</h2><p>Every state change has an authored rule and an audit trace.</p></article>
-        <article><span>03</span><h2>Sources preserved</h2><p>Versioned research stays separate from modeled projection and narration.</p></article>
+        <article>
+          <span>01</span>
+          <h2>Curated Near-Misses</h2>
+          <p>Real historical divergence moments where the fate of nations hung on a single judgment call.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h2>Grounded Causality</h2>
+          <p>Every divergence triggers structured geopolitical factor shifts and causal probability branches.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h2>Share Your Reality</h2>
+          <p>Exportable story cards and headlines ready to share with friends, Discord, or on social media.</p>
+        </article>
       </section>
+
       <section className="event-section" id="event-packs">
-        <p className="eyebrow">Event packs</p>
-        <h2>Begin at a decisive moment.</h2>
+        <p className="eyebrow">Scenario Library</p>
+        <h2>Eras of divergence</h2>
         <div className="event-grid">
           {eventPacks.map((eventPack) => (
             <article className="event-card" key={eventPack.id}>
@@ -51,11 +87,6 @@ export default function HomePage() {
             </article>
           ))}
         </div>
-      </section>
-      <DunkirkScenarioRunner />
-      <section className="how-it-works">
-        <p className="eyebrow">The simulation contract</p>
-        <h2>Structured causality first. Narrative second.</h2>
       </section>
     </main>
   );

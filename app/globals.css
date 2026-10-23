@@ -109,6 +109,14 @@ h2 {
   filter: brightness(1.1);
 }
 
+button:disabled,
+.button:disabled,
+.button[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
 .principles,
 .event-grid {
   display: grid;

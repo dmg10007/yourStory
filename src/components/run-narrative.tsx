@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { narrationVoiceLabels, narrationVoices, type NarrationVoice } from "@/lib/runs/narration-voices";
 import type { NarrativeQuality } from "@/lib/runs/narration-quality";
 import { NarrativeQualityNotice } from "./narrative-quality-notice";
+import { StoryShareCard } from "./story-share-card";
+import { calculateDivergence } from "@/lib/play/divergence";
 import styles from "./run-narrative.module.css";
 
 type Horizon = "aftermath" | "decade" | "present";
@@ -72,7 +74,25 @@ function paragraphs(text: string): string[] {
   return text.split("\n\n").filter(Boolean);
 }
 
-export function RunNarrative({ runId, autoStart = false }: { runId: string; autoStart?: boolean }) {
+export function RunNarrative({
+  runId,
+  autoStart = false,
+  scenarioTitle = "Alternate History",
+  scenarioEra,
+  choiceLabel,
+  choiceSummary,
+  factorValues,
+  resolvedForkCount,
+}: {
+  runId: string;
+  autoStart?: boolean;
+  scenarioTitle?: string;
+  scenarioEra?: string;
+  choiceLabel?: string;
+  choiceSummary?: string;
+  factorValues?: Record<string, number>;
+  resolvedForkCount?: number;
+}) {
   const [result, setResult] = useState<NarrativeResult | null>(null);
   const [voice, setVoice] = useState<NarrationVoice | "">("");
   const [status, setStatus] = useState<"idle" | "loading" | "regenerating" | "error">("idle");
@@ -114,6 +134,15 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
   const sources = result?.sources ?? [];
   const voiceLabel = result?.voice ? narrationVoiceLabels[result.voice as NarrationVoice] ?? result.voice : null;
 
+  const presentSection = sections.find((s) => s.horizon === "present");
+  const presentEcho = presentSection ? presentSection.text.split("\n\n")[0] : null;
+
+  const divergence = calculateDivergence({
+    choiceId: choiceLabel ?? "divergence",
+    factorValues,
+    resolvedForkCount,
+  });
+
   return (
     <section className="run-section run-narrative">
       <h2>Narrative</h2>
@@ -144,6 +173,19 @@ export function RunNarrative({ runId, autoStart = false }: { runId: string; auto
         {result && hasNarrative && (
           <>
             <NarrativeQualityNotice validation={result.validation} onRegenerate={() => void fetchNarrative(true)} disabled={isBusy} />
+            <StoryShareCard
+              runId={runId}
+              scenarioTitle={scenarioTitle}
+              scenarioEra={scenarioEra}
+              choiceLabel={choiceLabel || "Alternate Timeline"}
+              choiceSummary={choiceSummary}
+              headline={result.headline}
+              presentEcho={presentEcho}
+              divergenceScore={divergence.score}
+              divergenceLabel={divergence.label}
+              divergenceBadge={divergence.badge}
+              severity={divergence.severity}
+            />
             <div className={styles.story}>
               {result.headline && <h3 className={styles.headline}>{result.headline}</h3>}
               {sections.length > 0 ? (

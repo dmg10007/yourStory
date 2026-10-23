@@ -8,7 +8,7 @@ import type { MomentSummary } from "@/lib/play/moments";
 import styles from "./play-screen.module.css";
 
 export function PlayScreen({ moment }: { moment: MomentSummary }) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(moment.pivots[0]?.id ?? null);
   const [runId, setRunId] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "starting">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +16,10 @@ export function PlayScreen({ moment }: { moment: MomentSummary }) {
   const selected = moment.pivots.find((pivot) => pivot.id === selectedId) ?? null;
 
   async function rewriteHistory() {
-    if (!selected) return;
+    if (!selected) {
+      setError("Please select one of the turning points above to rewrite history.");
+      return;
+    }
     setStatus("starting");
     setError(null);
     try {
@@ -49,12 +52,20 @@ export function PlayScreen({ moment }: { moment: MomentSummary }) {
         <p className="eyebrow">Your change</p>
         <h2>{selected.label}</h2>
         <p className={styles.hook}>{selected.interventionSummary}</p>
-        <RunNarrative key={runId} runId={runId} autoStart />
+        <RunNarrative
+          key={runId}
+          runId={runId}
+          autoStart
+          scenarioTitle={moment.title}
+          scenarioEra={moment.date}
+          choiceLabel={selected.label}
+          choiceSummary={selected.interventionSummary}
+        />
         <div className={styles.actions}>
-          <button className="button" onClick={reset} type="button">Try another change</button>
-          <span className={styles.share}>
-            Share this story: <Link href={`/runs/${runId}`}>/runs/{runId}</Link>
-          </span>
+          <button className="button" onClick={reset} type="button">Try another turning point</button>
+          <Link className="button" style={{ background: "transparent", border: "1px solid var(--line)" }} href="/">
+            Choose another scenario
+          </Link>
         </div>
       </div>
     );
@@ -75,10 +86,25 @@ export function PlayScreen({ moment }: { moment: MomentSummary }) {
                 type="button"
                 aria-pressed={isSelected}
                 className={`${styles.pivotButton} ${isSelected ? styles.pivotButtonSelected : ""}`}
-                onClick={() => setSelectedId(pivot.id)}
+                onClick={() => {
+                  setSelectedId(pivot.id);
+                  setError(null);
+                }}
                 disabled={status === "starting"}
               >
-                <span className={styles.pivotTitle}>{pivot.label}</span>
+                <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: "0.5rem" }}>
+                  <span className={styles.pivotTitle}>{pivot.label}</span>
+                  <span style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    color: isSelected ? "var(--accent)" : "var(--muted)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    whiteSpace: "nowrap"
+                  }}>
+                    {isSelected ? "● Selected" : "○ Select"}
+                  </span>
+                </span>
                 <span className={styles.pivotText}>{pivot.description}</span>
               </button>
               <details className={styles.why}>
@@ -97,12 +123,23 @@ export function PlayScreen({ moment }: { moment: MomentSummary }) {
         })}
       </ul>
       <div className={styles.actions}>
-        <button className="button" onClick={rewriteHistory} type="button" disabled={!selected || status === "starting"}>
-          {status === "starting" ? "Rewriting history..." : "Rewrite history"}
+        <button
+          className="button"
+          onClick={rewriteHistory}
+          type="button"
+          disabled={status === "starting"}
+        >
+          {status === "starting" ? "Rewriting history..." : "⚡ Rewrite history"}
         </button>
-        {!selected && <span className={styles.share}>Pick a change to begin.</span>}
+        {selected ? (
+          <span className={styles.share}>
+            Ready to simulate: <strong>{selected.label}</strong>
+          </span>
+        ) : (
+          <span className={styles.share}>Pick a turning point above to begin.</span>
+        )}
       </div>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" style={{ color: "#e74c3c", marginTop: "0.5rem" }}>{error}</p>}
     </div>
   );
 }
